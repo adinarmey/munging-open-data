@@ -1,4 +1,7 @@
+frontmatter.txt
 preface.md
+howto.md
+middlematter.txt
 chapter01.md
 chapter02.md
 chapter03.md
@@ -14,4 +17,5 @@ chapter12.md
 chapter13.md
 chapter14.md
 chapter15.md
-
+backmatter.txt
+references.md
