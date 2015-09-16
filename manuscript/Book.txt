@@ -1,7 +1,7 @@
 frontmatter.txt
 preface.md
 howto.md
-middlematter.txt
+mainmatter.txt
 chapter01.md
 chapter02.md
 chapter03.md
