@@ -1,8 +1,8 @@
-# Mungeing Open Data in 15 Python Tutorials
+# Munging Open Data in 15 Python Tutorials
 
-This will be a book of tutorials on mungeing open data with Python.
+This will be a book of tutorials on munging open data with Python.
 
-The objectives are to teach students about how data is structured in the wild, how it is communicated and can be accessed via APIs, and how to use Python tools for data mungeing and preparation.  There should be 15 tutorials for a 15 week course.  They will use "open data" sources because these are numerous, timely, and are likely to remain accessible at fairly stable APIs without necessitating API keys or passwords.
+The objectives are to teach students about how data is structured in the wild, how it is communicated and can be accessed via APIs, and how to use Python tools for data munging and preparation.  There should be 15 tutorials for a 15 week course.  They will use "open data" sources because these are numerous, timely, and are likely to remain accessible at fairly stable APIs without necessitating API keys or passwords.
 
 ##Proposed Tutorials:
 
@@ -40,5 +40,5 @@ The objectives are to teach students about how data is structured in the wild, h
 
 - regular expressions
 - web scraping with BeautifulSoup
-- mungeing of audio, images, or video
+- munging of audio, images, or video
 - ?

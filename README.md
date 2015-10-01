@@ -1,3 +1,3 @@
-# mungeing-open-data
+# munging-open-data
 
-This is a book of Python data mungeing tutorials that I'm trying to write using the Leanpub platform.
+This is a book of Python data munging tutorials that I'm trying to write using the Leanpub platform.
