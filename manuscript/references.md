@@ -6,4 +6,3 @@ Lohr, S. (2014, August 17). For Big-Data Scientists, 'Janitor Work' is Key Hurdl
 
 Provost, F., & Fawcett, T. (2013). Data Science for Business. Sebastopol, CA: O'Reilly Media.
 
-...
