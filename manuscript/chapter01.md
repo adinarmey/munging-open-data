@@ -8,4 +8,4 @@ The U.S. government has organized thousands of datasets created by various agenc
 
 Take some time now to browse through the catalog of data available.  We'll explore several of these data sources before we're through with fifteen tutorials.  If you're not from the U.S., your home country probably has something similar.  Two examples are [Canada's open data portal](http://open.canada.ca/en/open-data) and [Britain's](https://www.data.gov.uk/).
 
-This data comes in a variety of formats.  We'll start today with some well-structured CSV data from the Census Bureau's [American Community Survey](http://catalog.data.gov/dataset/american-community-survey), carried out every five years.
+This data comes in a variety of formats.  We'll start today with some well-structured CSV data from the Census Bureau's [American Community Survey](http://catalog.data.gov/dataset/american-community-survey), carried out every five years.  There's an API we can use to download some data directly.
