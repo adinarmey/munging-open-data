@@ -263,3 +263,8 @@ I define a simple function to return the cube of a number:
 ## Munging the Tides
 
 We begin this tutorial by importing some libraries.
+
+    In [30]: import requests
+    In [31]: import json
+    
+    

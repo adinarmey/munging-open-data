@@ -1,4 +1,3 @@
-{language=python,line-numbers=off}
 frontmatter.txt
 preface.md
 howto.md
