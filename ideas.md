@@ -2,7 +2,12 @@
 
 This will be a book of tutorials on munging open data with Python.
 
-The objectives are to teach students about how data is structured in the wild, how it is communicated and can be accessed via APIs, and how to use Python tools for data munging and preparation.  There should be 15 tutorials for a 15 week course.  They will use "open data" sources because these are numerous, timely, and are likely to remain accessible at fairly stable APIs without necessitating API keys or passwords.
+The objectives are to teach students about how data is structured in the wild, 
+how it is communicated and can be accessed via APIs, and how to use Python tools 
+for data munging and preparation.  There should be 15 tutorials for a 15 week 
+course.  They will use "open data" sources because these are numerous, timely, 
+and are likely to remain accessible at fairly stable APIs without necessitating 
+API keys or passwords.
 
 ##Proposed Tutorials:
 
