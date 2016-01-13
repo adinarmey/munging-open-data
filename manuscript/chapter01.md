@@ -1,6 +1,6 @@
 # Chapter 1 
 
-{language=python,linenos=off}
+{linenos=off}
 
 ## Where can we find open data?
 
