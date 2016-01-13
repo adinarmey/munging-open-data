@@ -1,7 +1,7 @@
 # Setting Things Up
 
-I'll be using the Python programming language for the tutorials in this book.  
-Why Python?  Several scripting languages are used by data scientists and 
+I'll be using the Python programming language for the tutorials in this 
+book.  Why Python?  Several scripting languages are used by data scientists and 
 developers of data products---R for statistical analysis and data visualization, 
 Perl for text processing and shell scripting, JavaScript for creating 
 data-driven web apps---but none of these can do *all* of those things well.  
@@ -12,8 +12,9 @@ tool for many data projects.
 We'll use a number of extensions to the core Python language (called *packages*) 
 such as `NumPy` and `pandas`.  Instead of installing these all manually, I 
 strongly recommend that you download the Anaconda Scientific Python Distribution 
-provided for free for Mac or Windows by Continuum at `http://www.continuum.io/`.  
-Anaconda includes Python itself with a large bundle of packages commonly used by 
+provided for free for Mac or Windows by Continuum at 
+`http://www.continuum.io/`.  Anaconda includes Python itself with a large 
+bundle of packages commonly used by 
 data scientists.  Conveniently, it makes its own copy of Python, so if you are 
 already using another version of Python for other projects, the Anaconda 
 installation will not delete or alter it.
@@ -21,8 +22,8 @@ installation will not delete or alter it.
 You'll interact with Python via the IPython shell, also included with Anaconda, 
 or by writing scripts in a text editor such as Notepad++, Atom, Brackets, 
 Sublime, emacs or vim.  Anaconda includes a free Python IDE called Spyder that 
-integrates a text editor and an IPython console, which you might find valuable.  
-(Users of R will find it very similar to the exceptional RStudio IDE.)
+integrates a text editor and an IPython console, which you might find 
+valuable. (Users of R will find it very similar to the exceptional RStudio IDE.)
 
 Continuum offers Anaconda with your choice of Python version 2 and Python 3.  I 
 developed these tutorials using Python 3.5, so if you are using any version of 

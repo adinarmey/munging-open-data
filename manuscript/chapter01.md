@@ -137,42 +137,70 @@ by something like this:
 
     In [11]: mylist[3]
     Out[11]: 4
+
+A very important thing you can do with lists is to **loop** through them, that
+is, to apply some piece of code to each and every element in the list.  The
+simplest way to do this is something like the following.
+
+    In [12]: for i in mylist:
+       ....:     print(i)
+       ....:
+    1
+    2
+    3
+    4
+    5
+    
+If you're having trouble with the above, note that the second line must be
+indented; that's how Python knows it's to be repeated at every iteration of
+the loop. You must hit enter twice after the second line, so Python knows that 
+you're done writing indented code. And `print()` is just the Python function 
+(more on functions below) that outputs data to the user's console.
     
 A **dictionary** is a data structure to hold items that are (a) not necessarily
 the same kind of thing, and (b) indexed by **keys** rather than numeric order.
 In essence, every item in a dict has a unique "name" you can use to retrieve
 it. A dict is denoted by `{` curly braces `}`. For example:
 
-    In [12]: bob = { "name":"Robert", "age":35, "sign":"Virgo" }
+    In [13]: bob = { "name":"Robert", "age":35, "sign":"Virgo" }
 
 Because Python doesn't care about the sequence of the items in a dict, it will
 not necessarily present them in the order you added them.  For example, you
 might see:
 
-    In [13]: bob
-    Out[13]: {'age': 35, 'name':'Robert', 'sign': 'Virgo'}
+    In [14]: bob
+    Out[14]: {'age': 35, 'name':'Robert', 'sign': 'Virgo'}
 
 To access an element, you use its key:
 
-    In [14]: bob["age"]
-    Out[14]: 35
+    In [15]: bob["age"]
+    Out[15]: 35
     
 You can get very complex data structures by storing lists within lists, dicts
 within dicts, dicts within lists, or lists within dicts.  Here's an example of 
 the latter:
 
-    In [15]: bob["children"]=["sarah","tom","scooter"]
+    In [16]: bob["children"]=["sarah","tom","scooter"]
 
-    In [16]: bob
-    Out[16]: {'age': 35,
+    In [17]: bob
+    Out[17]: {'age': 35,
               'children': ['sarah', 'tom', 'scooter'],
               'name': 'Robert',
               'sign': 'Virgo'}
 
 To access nested items, chain the indexes together.
               
-    In [17]: bob["children"][0]
-    Out[17]: 'sarah'
+    In [18]: bob["children"][0]
+    Out[18]: 'sarah'
+    
+We can even loop through a nested list.
+
+    In [19]: for c in bob["children"]:
+       ....:     print(c)
+       ....:
+    sarah
+    tom
+    scooter
     
 Some of the data we'll be working with will have deep and complex nesting of 
 lists and dicts, and knowing how to navigate them will be key to extracting 
@@ -189,32 +217,32 @@ followed by parentheses, possibly containing one or more **arguments**.
 For example, the `print` function takes almost any kind of variable as an
 argument, and prints it to the console.
 
-    In [18]: print("hello world")
-    helloworld
+    In [20]: print("hello world")
+    hello world
     
 Some functions, like `sum`, `min`, and `max` take lists as arguments:
 
-    In [19]: sum(mylist)
-    Out[19]: 15
+    In [21]: sum(mylist)
+    Out[21]: 15
     
-    In [20]: max(yourlist)
-    Out[20]: 'ham'
+    In [22]: max(yourlist)
+    Out[22]: 'ham'
     
 Only a few functions are "built-in" to Python.  For most other kinds of things
 you want to do, such as statistics, data manipulation, or visualization, you
 can import **packages** of additional functions.  For example, to take a square
 root, import the `math` package:
 
-    In [21]: import math
-    In [22]: math.sqrt(x)
-    Out[22]: 1.7320508075688772
+    In [23]: import math
+    In [24]: math.sqrt(x)
+    Out[24]: 1.7320508075688772
     
 Alternatively, you could import just one function from a package, so you can
 call it by its name without the package name as prefix.
     
-    In [21]: from math import sqrt
-    In [22]: sqrt(x)
-    Out[22]: 1.7320508075688772
+    In [25]: from math import sqrt
+    In [26]: sqrt(x)
+    Out[26]: 1.7320508075688772
 
 You can also create your own functions in Python and re-use them.  Use the 
 `def` keyword to define a new function, indent the code that will be run when
@@ -222,15 +250,15 @@ the function is called, and end it by using the `return` keyword to specify
 the result that's sent back to the program that called it.  In this example,
 I define a simple function to return the cube of a number:
     
-    In [23]: def cube(y):
+    In [27]: def cube(y):
        ....:     ycubed = y*y*y
        ....:     return ycubed
     
-    In [24]: cube(2)
-    Out[24]: 8
+    In [28]: cube(2)
+    Out[28]: 8
     
-    In [25]: cube(3)
-    Out[25]: 27
+    In [29]: cube(3)
+    Out[29]: 27
     
 ## Munging the Tides
 
