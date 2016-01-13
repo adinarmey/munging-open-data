@@ -1,4 +1,5 @@
 # Chapter 1 
+{language=python,line-numbers=off}
 
 ## Where can we find open data?
 

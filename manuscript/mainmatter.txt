@@ -1,2 +1,1 @@
 {mainmatter}
-{language=python,line-numbers=off}
