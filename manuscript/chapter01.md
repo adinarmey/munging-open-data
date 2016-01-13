@@ -1,7 +1,5 @@
 # Chapter 1 
 
-{linenos=off}
-
 ## Where can we find open data?
 
 The world is full of data made available to the public by governments, 
