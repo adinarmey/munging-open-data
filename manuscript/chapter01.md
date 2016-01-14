@@ -485,6 +485,12 @@ These are some extensions you can do to develop your skills:
     moon.  Essentially this should be a line graph that increases linearly
     from 0 to 100% and back to 0.  It should be below, and therefore
     parallel in time to, the plot of the tide data.
+
+You may find the documentation at matplotlib.org helpful, such as the
+[Pyplot tutorial](http://matplotlib.org/1.3.1/users/pyplot_tutorial.html)
+found there.  You can also generally find help from places like Stack
+Overflow but *not* if you enter homework problems directly. They flame you
+for that.
     
 ### Grading
 
