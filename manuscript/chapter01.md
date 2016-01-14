@@ -301,6 +301,8 @@ a line by itself.  Amend the code above to remind yourself what it does.
     import requests    # to get data from the web service
     import json        # to parse JSON into Python data structures
     
+### A web service API
+    
 NOAA's Tides and Currents data is available through a **web service** API; 
 that's essentially a server using the same technology that powers a website 
 but serving up machine-readable data instead of human-readable web pages.
@@ -320,11 +322,11 @@ for this tutorial are:
 - units=english *(not metric!)*
 - time_zone=gmt
 - format=json *(XML and CSV are also available)*
-- station=9410170 *(San Diego)* and station=8418150 *(Portland, Maine)*
+- station=9410170 *(San Diego)* and station=8443970 *(Boston)*
 
 Because I want to get data from two different CO-OPS stations, I'll need two
 URLs.  Why not test them out in a web browser and see if I actually
-get the JSON data that I want?  Try [this link](http://tidesandcurrents.noaa.gov/api/datagetter?product=water_level&datum=MLLW&date=recent&units=english&time_zone=gmt&format=json&station=9410170) and [this one](http://tidesandcurrents.noaa.gov/api/datagetter?product=water_level&datum=MLLW&date=recent&units=english&time_zone=gmt&format=json&station=8418150).  
+get the JSON data that I want?  Try [this link](http://tidesandcurrents.noaa.gov/api/datagetter?product=water_level&datum=MLLW&date=recent&units=english&time_zone=gmt&format=json&station=9410170) and [this one](http://tidesandcurrents.noaa.gov/api/datagetter?product=water_level&datum=MLLW&date=recent&units=english&time_zone=gmt&format=json&station=8443970).  
 
 To get a better handle on the structure of this data, you might try 
 running it through any of a number of free JSON viewers like the one at 
@@ -343,28 +345,155 @@ two steps:
     sandata = json.loads(san.content.decode())
     
 That first instruction could have been one long line, by the way, but I 
-shortened it to make it more readable.  Text strings (marked off by 
+broke it up to make it more readable.  Text strings (marked off by 
 quotation marks, remember) are automatically concatenated by Python when
 the code is interpreted. As far as the `requests.get()` function is
 concerned, it received just one argument: the complete URL.
 
-We could do the same sort of thing for the Portland data, but the first
+We could do the same sort of thing for the Boston data, but the first
 rule of being a good programmer is that a good programmer is lazy.  As soon
 as it looks like he's got to do the same thing twice, a programmer thinks
 about automating it.  Here's a way we could get the data from two CO-OPS
 stations without typing that whole URL twice:
 
     # Lazy Joe wants to avoid writing the whole URL twice
-    stations = ["9410170","8418150"]
+    stations = ["9410170","8443970"]
     urlroot = ("http://tidesandcurrents.noaa.gov/api/datagetter?"
                "product=water_level&datum=MLLW&date=recent"
                "&units=english&time_zone=gmt&format=json&station=")
     san = requests.get(urlroot+stations[0])
-    pwm = requests.get(urlroot+stations[1])
+    bos = requests.get(urlroot+stations[1])
     sandata = json.loads(san.content.decode())
-    pwmdata = json.loads(pwm.content.decode())
+    bosdata = json.loads(bos.content.decode())
     # I actually could have been a whole lot lazier...
   
 Better run this code in the console to make sure you don't get any error
 messages.  It may take a few iterations to find all the typos, but that's
 fine---that's why the console is there!
+
+### Exploring the data
+
+Before we try to make something with this data, it's a good idea to poke
+around and see what it contains.  If you used a JSON viewer of some kind
+you probably saw that at the top level, it's a dict with two elements:
+"data" and "metadata".  Spyder also has a Variable explorer (in the upper
+right panel by default) which you can use to explore the San Diego and 
+Boston datasets.  The "metadata" item indeed contains **metadata**, that
+is, a bit of information to tell us more about the data it accompanies.
+
+    In [10]: sandata["metadata"]
+    Out[10]: {'id': '9410170', 
+              'lat': '32.7142', 
+              'lon': '-117.1736', 
+              'name': 'San Diego'}
+
+The "data" item is a list of dicts, one for each sea level measurement over
+the past 72 hours.  If you inspect the first item in the list, you'll see
+that it contains a few elements of its own: "v" (value?) seems to be the 
+measurement we want, "t" is the time of the measurement, and we'd have to
+look at the API documentation to figure out what the other codes mean.
+
+    In [11]: bosdata["data"][0]
+    Out[11]: {'f': '1,0,0,0',
+              'q': 'p',
+              's': '0.138',
+              't': '2016-01-11 04:30',
+              'v': '10.845'}
+
+I've decided that what I want to do is plot the sea level data as a line
+graph with two lines: one for Boston and one for San Diego.  I'm not an
+astronomer, but I expect that something about the moon's position will
+mean that the east and west coast tides will be different in a predictable
+way.  For each station, what I'll need is a simple python list of sea level
+measurements, that is, just the "v" values.
+
+The easy way to munge this data is to loop through the 700+ data points
+in each data set.  The loop for San Diego should start with a line like
+`for i in sandata["data"]:` but what goes inside the loop?  Well, what
+we're going to want to do is start with a new, empty list and append each
+data point to the end of it.
+
+    sanmllw = []  # an empty list
+    for i in sandata["data"]:
+        sanmllw.append(i["v"])
+        
+But wait! Another personality trait of good programmers (in addition to
+laziness) is constant anxiety.  The code looks right, is right, but I have
+a nagging feeling that it might be wrong.  Is `i["v"]` the correct way to
+reference the number I want?  A simple trick to give myself
+some confidence in it is to `print()` a little message to the console 
+showing me the data from each step.  Here's the loop with a `print()` 
+statement for "debugging"; it's a bit more wordy but makes me feel a lot
+better.  The print statement can be commented out later, once I know I've
+got the loop working right.
+
+    sanmllw = []  # an empty list
+    for i in sandata["data"]:
+        sanmllw.append(i["v"])
+        print("I just appended " + i["v"])  # for debugging
+
+Do the same for the Boston data; store it in a list called `bosmllw`.
+
+### Visualizing the data
+
+This is time series data, and is naturally very well suited to a line graph.
+The most popular data visualization package for Python is `matplotlib`, and
+yes, it's included in the Anaconda distribution.  In this case we're going 
+to import just a part of it called `pyplot` and we're even going to give it
+a shorter nickname so we can save some keystrokes when using it.  The import
+statement looks like this:
+
+    import matplotlib.pyplot as plt
+    
+You've come a long way in these few pages, from entering "2+2" at the console
+to see what would happen, to accessing data over the Internet, exploring it,
+and transforming it into time series.  I think, then, we'll take it easy with
+this last task.  Here's a one-liner that produces a line graph with our two
+series: San Diego in red and Boston in blue.
+
+    plt.plot(sanmllw,"r",bosmllw,"b")
+    
+To spruce it up, I'll add a title and a y-axis label.  Be aware that all
+three of these lines must be run together, as a block, in order to produce
+the graph.
+
+    plt.plot(sanmllw,"r",bosmllw,"b")
+    plt.title("San Diego and Boston tides")
+    plt.ylabel("MLLW")
+
+The output looks like Figure 4 for me.  (It'll look different for you, 
+because you've got a different 72 hours of sea level data.)
+
+![Fig. 4: San Diego and Boston Tides](/images/tut01_graph1.png)
+
+## Extending this exercise
+
+These are some extensions you can do to develop your skills:
+
+1. Add two more stations to our line chart: Honolulu, HI and Pensacola, FL.
+    Plot their data in green and purple (hint: "magenta"), respectively.
+    
+2. I'd like to see a longer time span of data.  Rewrite the script so that
+    it acquires and plots all data from December 11, 2015 through January 
+    10, 2016.
+
+3. I might like to see if the phase of the moon has anything to do with 
+    the tides.  (It probably doesn't, but like I said, I'm not an 
+    astronomer.)  It happens that 12/11/2015 and 1/10/2016 had new moons,
+    with the full moon occurring on Christmas Day, 12/25/2015. Add to this
+    data visualization a second subplot that indicates the phase of the 
+    moon.  Essentially this should be a line graph that increases linearly
+    from 0 to 100% and back to 0.  It should be below, and therefore
+    parallel in time to, the plot of the tide data.
+    
+### Grading
+
+If you do this as homework in my class, submit a python script that
+produces a graph like Figure 5, below.  (You are free to embellish it or
+play around with the style, as long as it has two subplots with the 
+right data and line colors. I will run your code on my own system
+and, if it gives me the desired outcome, give you full credit.  Make sure
+your name and student number are provided in a comment near the top of the
+code file.
+
+![Fig. 5: The Desired Outcome](/images/tut01_graph1.png)
