@@ -470,8 +470,9 @@ because you've got a different 72 hours of sea level data.)
 
 These are some extensions you can do to develop your skills:
 
-1. Add two more stations to our line chart: Honolulu, HI and Pensacola, FL.
-    Plot their data in green and purple (hint: "magenta"), respectively.
+1. Add two more stations to our line chart: Charleston, SC and San 
+    Francisco. Plot their data in green and purple (hint: "magenta"), 
+    respectively.
     
 2. I'd like to see a longer time span of data.  Rewrite the script so that
     it acquires and plots all data from December 11, 2015 through January 
@@ -479,11 +480,13 @@ These are some extensions you can do to develop your skills:
 
 3. I might like to see if the phase of the moon has anything to do with 
     the tides.  (It probably doesn't, but like I said, I'm not an 
-    astronomer.)  It happens that 12/11/2015 and 1/10/2016 had new moons,
-    with the full moon occurring on Christmas Day, 12/25/2015. Add to this
-    data visualization a second subplot that indicates the phase of the 
+    astronomer.)  It happens that 12/11/2015 and 1/10/2015 each had a
+    new moon, with the full moon occurring on Christmas Day, 
+    12/25/2015. To help me investigate, please add to this data 
+    visualization a second subplot that indicates the phase of the 
     moon.  Essentially this should be a line graph that increases linearly
-    from 0 to 100% and back to 0.  It should be below, and therefore
+    from 0 to 100% on 12/15 and then decreases back to 0.  
+    It should be below, and therefore
     parallel in time to, the plot of the tide data.
 
 You may find the documentation at matplotlib.org helpful, such as the
@@ -494,7 +497,7 @@ for that.
     
 ### Grading
 
-If you do this as homework in my class, submit a python script that
+If you do this as homework in my class, submit a Python script that
 produces a graph like Figure 5, below.  (You are free to embellish it or
 play around with the style, as long as it has two subplots with the 
 right data and line colors. I will run your code on my own system
@@ -502,4 +505,4 @@ and, if it gives me the desired outcome, give you full credit.  Make sure
 your name and student number are provided in a comment near the top of the
 code file.
 
-![Fig. 5: The Desired Outcome](/images/tut01_graph1.png)
+![Fig. 5: The Desired Outcome](/images/tut01_solution1.png)
