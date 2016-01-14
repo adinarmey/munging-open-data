@@ -1,4 +1,4 @@
-# Chapter 1 
+# Tutorial 1 
 
 ## Where can we find open data?
 
@@ -262,9 +262,109 @@ I define a simple function to return the cube of a number:
     
 ## Munging the Tides
 
-We begin this tutorial by importing some libraries.
+In the next part of the tutorial, we're going to write Python code to acquire,
+prepare, and then do some simple analysis of the data.  This is the kind of 
+work you don't want to have to type and re-type every time you need to fix a 
+typo, so we're going to switch from the interactive console to an environment
+where our code can be edited and saved.  
 
-    In [30]: import requests
-    In [31]: import json
+For my two cents, the best choice is
+the Spyder IDE that comes with the Anaconda Python distribution. It gives us
+a good text editor, on the left, an interactive IPython console in the bottom
+right corner, and other panels and tabs for inspecting objects in memory, the
+history of our console sessions, data graphics we've created, and other useful
+features.
+
+![Fig. 3: Spyder IDE](/images/spyder.png)
+
+We begin this tutorial by importing some libraries.  The `requests` library
+contains functions for sending HTTP requests over the web. We'll use it to
+request data from NOAA's servers.  The data is formatted in JavaScript Object
+Notation, or **JSON** for short, so we'll need a function from the `json`
+library to load it into a Python data structure.
+
+    import requests
+    import json
     
+The way I do this in Spyder is to type those two lines of code into a new code
+file, highlight those two lines, and then click the toolbar icon for "Run
+current cell".  At right, I see that the two lines are executed in the IPython
+console, and on the left, I can click "Save" so that I don't lose my work.
+
+In a Python script file, one of the most useful things you can do is write
+**comments**. These are text notes that are ignored by Python so you can 
+use them to explain your code to other devlopers or just to serve as 
+reminders to yourself.  In Python, everything that follows a `#` is a
+comment, so a comment can be placed at the end of a line of code or on 
+a line by itself.  Amend the code above to remind yourself what it does.
+
+    import requests    # to get data from the web service
+    import json        # to parse JSON into Python data structures
     
+NOAA's Tides and Currents data is available through a **web service** API; 
+that's essentially a server using the same technology that powers a website 
+but serving up machine-readable data instead of human-readable web pages.
+Each piece of data has a URL and we access it by making HTTP "GET" requests 
+over the Internet, just like your browser would.  For more information and 
+documentation, visit the [CO-OPS 
+website](http://tidesandcurrents.noaa.gov/api/).
+
+The data we want is at a URL that begins with 
+"http://tidesandcurrents.noaa.gov/api/datagetter?" and that we complete by 
+specifying several parameters separated by `&`. The parameters I want to use
+for this tutorial are:
+
+- product=water_level
+- datum=MLLW *(the measurement of "mean lower low water")*
+- date=recent *(this gives you the last 72 hours of data)*
+- units=english *(not metric!)*
+- time_zone=gmt
+- format=json *(XML and CSV are also available)*
+- station=9410170 *(San Diego)* and station=8418150 *(Portland, Maine)*
+
+Because I want to get data from two different CO-OPS stations, I'll need two
+URLs.  Why not test them out in a web browser and see if I actually
+get the JSON data that I want?  Try [this link](http://tidesandcurrents.noaa.gov/api/datagetter?product=water_level&datum=MLLW&date=recent&units=english&time_zone=gmt&format=json&station=9410170) and [this one](http://tidesandcurrents.noaa.gov/api/datagetter?product=water_level&datum=MLLW&date=recent&units=english&time_zone=gmt&format=json&station=8418150).  
+
+To get a better handle on the structure of this data, you might try 
+running it through any of a number of free JSON viewers like the one at 
+http://jsonviewer.stack.hu.  I use a free Chrome plugin called JSONView
+which lets me navigate the data's structure right in the browser.  One
+thing you may notice right away is that it uses the same kinds of data
+structures you just saw in Python, lists and dicts, and the same symbols
+to denote them.  We can load this data into our Python session with just
+two steps:
+
+    # Get San Diego data and parse the JSON
+    san = requests.get("http://tidesandcurrents.noaa.gov/api/datagetter?"    
+                       "product=water_level&datum=MLLW&date=recent"
+                       "&units=english&time_zone=gmt&format=json"
+                       "&station=9410170")
+    sandata = json.loads(san.content.decode())
+    
+That first instruction could have been one long line, by the way, but I 
+shortened it to make it more readable.  Text strings (marked off by 
+quotation marks, remember) are automatically concatenated by Python when
+the code is interpreted. As far as the `requests.get()` function is
+concerned, it received just one argument: the complete URL.
+
+We could do the same sort of thing for the Portland data, but the first
+rule of being a good programmer is that a good programmer is lazy.  As soon
+as it looks like he's got to do the same thing twice, a programmer thinks
+about automating it.  Here's a way we could get the data from two CO-OPS
+stations without typing that whole URL twice:
+
+    # Lazy Joe wants to avoid writing the whole URL twice
+    stations = ["9410170","8418150"]
+    urlroot = ("http://tidesandcurrents.noaa.gov/api/datagetter?"
+               "product=water_level&datum=MLLW&date=recent"
+               "&units=english&time_zone=gmt&format=json&station=")
+    san = requests.get(urlroot+stations[0])
+    pwm = requests.get(urlroot+stations[1])
+    sandata = json.loads(san.content.decode())
+    pwmdata = json.loads(pwm.content.decode())
+    # I actually could have been a whole lot lazier...
+  
+Better run this code in the console to make sure you don't get any error
+messages.  It may take a few iterations to find all the typos, but that's
+fine---that's why the console is there!
