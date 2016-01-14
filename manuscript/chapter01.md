@@ -485,8 +485,8 @@ These are some extensions you can do to develop your skills:
     12/25/2015. To help me investigate, please add to this data 
     visualization a second subplot that indicates the phase of the 
     moon.  Essentially this should be a line graph that increases linearly
-    from 0 to 100% on 12/15 and then decreases back to 0.  
-    It should be below, and therefore
+    from 0 to 100% on 12/15 and then decreases back to 0.  It should be 
+    below, and therefore
     parallel in time to, the plot of the tide data.
 
 You may find the documentation at matplotlib.org helpful, such as the
