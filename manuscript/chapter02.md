@@ -48,10 +48,6 @@ we could use the "open" command in the standard library[^stdlib].  In this code
 sample, we read the file into a variable, "f", which can be read line by line.
 For each line, we `strip()` off the invisible end-of-line whitespace and then
 `split()` the line at the commas to make a 3-element list:
-
-[^stdlib]: The standard library means the set of functions available by default,
-    without importing any additional packages or modules.
-
     
     f = open("names/yob1880.txt","r")
     names,sexes,counts=[],[],[] # create 3 empty lists
@@ -67,6 +63,9 @@ Be aware that the script only works if it is stored in the parent folder of the
 unzipped "names" data; you can of course change the reference to the file if 
 you want to store the Python script in a different directory relative to the
 unzipped data files.
+
+[^stdlib]: The standard library means the set of functions available by default,
+    without importing any additional packages or modules.
 
 The second approach is to use the `csv` package, which includes "reader" and
 "writer" functions that simplify interacting with CSV files.  Although the code
@@ -108,8 +107,8 @@ DataFrame.  We can access a column by name[^colname], in either of two ways:
 To get a quick look at the DataFrame's contents, the `head()` method shows
 you five lines of data.  This function is actually a **method**, meaning it 
 "belongs to" the DataFrame, and is called by appending the function call to
-the variable name.  (I.e., you couldn't type `head(names1880)` at the console,
-but you can type `names1880.head()`.)
+the variable name (i.e., you couldn't type `head(names1880)` at the console,
+but you can type `names1880.head()`).
 
     In [3]: names1880.head()
     Out[3]: 
