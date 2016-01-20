@@ -52,6 +52,7 @@ For each line, we `strip()` off the invisible end-of-line whitespace and then
 [^stdlib]: The standard library means the set of functions available by default,
     without importing any additional packages or modules.
 
+    
     f = open("names/yob1880.txt","r")
     names,sexes,counts=[],[],[] # create 3 empty lists
     for line in f.readlines():
