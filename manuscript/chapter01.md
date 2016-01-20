@@ -14,7 +14,7 @@ organizing links to thousands of datasets created by various
 agencies into a search engine and directory called 
 [http://www.data.gov](http://www.data.gov).
 
-![Fig. 1: Data.gov](/images/datadotgov.png)
+![Fig. 1.1: Data.gov](/images/datadotgov.png)
 
 Take some time now to browse through the catalog of data available.  We may
 find ourselves munging several of these data sources before we're through 
@@ -67,7 +67,7 @@ We'll start today by using the interactive mode, but instead of the basic
 Python interpreter we'll use **IPython**, an enhanced console with some extras
 that are very helpful for data analytics applications.
 
-![Fig. 2: IPython console](/images/ipython_shell.png)
+![Fig. 1.2: IPython console](/images/ipython_shell.png)
 
 ### Basic interaction with Python
 
@@ -275,7 +275,7 @@ right corner, and other panels and tabs for inspecting objects in memory, the
 history of our console sessions, data graphics we've created, and other useful
 features.
 
-![Fig. 3: Spyder IDE](/images/spyder.png)
+![Fig. 1.3: Spyder IDE](/images/spyder.png)
 
 We begin this tutorial by importing some libraries.  The `requests` library
 contains functions for sending HTTP requests over the web. We'll use it to
@@ -461,10 +461,10 @@ the graph.
     plt.title("San Diego and Boston tides")
     plt.ylabel("MLLW")
 
-The output looks like Figure 4 for me.  (It'll look different for you, 
+The output looks like Figure 1.4 for me.  (It'll look different for you, 
 because you've got a different 72 hours of sea level data.)
 
-![Fig. 4: San Diego and Boston Tides](/images/tut01_graph1.png)
+![Fig. 1.4: San Diego and Boston Tides](/images/tut01_graph1.png)
 
 ## Extending this exercise
 
@@ -498,11 +498,11 @@ for that.
 ### Grading
 
 If you do this as homework in my class, submit a Python script that
-produces a graph like Figure 5, below.  (You are free to embellish it or
+produces a graph like Figure 1.5, below.  (You are free to embellish it or
 play around with the style, as long as it has two subplots with the 
 right data and line colors. I will run your code on my own system
 and, if it gives me the desired outcome, give you full credit.  Make sure
 your name and student number are provided in a comment near the top of the
 code file.
 
-![Fig. 5: The Desired Outcome](/images/tut01_solution1.png)
+![Fig. 1.5: The Desired Outcome](/images/tut01_solution1.png)

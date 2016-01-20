@@ -1,2 +1,5 @@
 # homework solutions shouldn't be public
 solutions/
+
+# let's not upload the data for the tutorials
+tutorials/names/
