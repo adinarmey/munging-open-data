@@ -1,22 +1,19 @@
 # Chapter 2
 
-Introduce Kaggle.  Download baby names data.
+## Munging public data sets
 
-Use pandas to load the CSV and do summary stats. First total births, then 
-total births by year, then male/female ratio by year.
+Some data you have to fight for, but quite a bit of data is available in 
+easy-to-use formats like CSV and all you have to do is point and click.  CSV
+(or comma-separated values) is a common way we can encode tabular data (tables
+with rows and consistent columns, like spreadsheets) and Python has some pretty
+good tools for exploring and munging these kinds of data, once you load them in.
 
-For a given name, plot a time series of count per year.  (More on data viz.)
-Now do that as percent of names (of that sex) per year.
+In this tutorial, we'll work with a dataset of baby names tabulated by the
+Social Security Administration, and you're going to help me find a name for a
+future child.  As an extension, you'll analyze the popularity of your own name
+(or one of your choice) over time and across the 50 states.
 
-Find the top 1000 boys' names and print them in order.
-For these names, calculate how much popularity they *lost* from 1915 to 2015
-and print them in order from most-lost to least-lost (most gained).
-
-Homework: do a plot of <your name>'s popularity over the past 30 years, with
-a box-whisker plot showing the distribution of popularity in the 50 states for
-each year.
-
-## Baby Names Data
+### Baby Names Data
 
 My wife and I are expecting a new baby this year, so baby names have been on 
 my mind.  Fortunately, there's a great dataset out there that might help me to
@@ -24,11 +21,9 @@ assuage my curiosity.  The U.S. Social Security Administration has been issuing
 Social Security numbers (SSNs) to newborns for decades now, and their data can
 therefore be used to track the number of births as well as trends in naming.  
 
-The data from 1880 to 2014 is available here:
-http://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-national-level-data
+The data from 1880 to 2014 is available [here](http://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-national-level-data).
 
-A subset of the data broken down by state from 1910 to 2014 can be found here:
-http://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-data-by-state-and-district-of-
+A subset of the data broken down by state from 1910 to 2014 can be found [here](http://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-data-by-state-and-district-of-)
 
 ## Loading Data From a File
 
@@ -321,7 +316,7 @@ the change in *proportion*.
 First, we'll subset the data to just the boys.  DataFrames can be indexed
 in an interesting way: by True/False expressions (called Boolean 
 expressions).  Python will interpret `names.sex=="M"` as a sequence of True
-and False values the same length as names.sex, with True for each position in
+and False values the same length as `names.sex`, with True for each position in
 the sequence that corresponds to a value of "M".  This sequence of True/False
 values can be used as an index to return a subset of the original DataFrame:
 
@@ -433,6 +428,50 @@ five names into a list, and use this list to plot time series as before:
 
     # get a list of 5 names to try plotting
     best5 = list(boys_compared.sort("reldelta").tail().index)
-    names_series[best5].plot(subplots=True,figsize=(12,10))
+    names_series[best5].plot(subplots=True,figsize=(12,10),title="Trends in five names")
     
 ![Fig. 2.6: Historical trends of five names](/images/best5namesplot.png)
+
+Well, I'm definitely not naming him Adolph, but there's great food for thought
+here.  Can you repeat this analysis but for girls' names?
+
+## Extending this Exercise
+
+There's another, related dataset provided by the Social Security 
+Administration which breaks down the names by states.  It would be interesting
+to see how much the popularity of a name varies across the states and over 
+time.  Maybe some names are about equally popular everywhere, while others are
+regional.
+
+Your homework, should you choose to accept it, is to download the state-level
+data and conduct an analysis on your name (or any name you like, except 
+"Joseph").  Try to do the following:
+
+1. First, plot the changing popularity of the name between 1910 and 2014, using
+    the state-level data.
+    
+2. Next, try to create a box plot of the distribution of popularity in a given
+    year, such as the year you were born.  There should be 51 data points, and
+    this is a kind of plot that shows how widely distributed they are.
+    
+3. Finally, produce a time series of box plots of your name's popularity in
+    the fifty states over a 20-year period from 1995 through 2014.
+    
+You should be able to do all of this using `pandas` functionality as 
+demonstrated in the tutorial.  For more documentation, see [pandas.pydata.org](
+http://pandas.pydata.org/).
+
+### Grading
+
+If you do this as homework in my class, submit a Python script that
+produces a plot like Figure 2.7, below.  (You are free to embellish it or
+play around with the style, as long as it has the right data. Make sure the
+plot has a title that tells me which name it is based on.  I will run my own
+version of the code and see if I get the same graphic for the given name.
+
+Make sure
+your name and student number are provided in a comment near the top of the
+code file.
+
+- **Figure 2.7 will go here**
+
