@@ -95,7 +95,7 @@ We can load a CSV file into a DataFrame with a one-liner, after importing the
 pandas package:
 
     import pandas as pd
-    names1880 = pd.read_csv("names/yob1880.txt",names=["name","sex","count"])
+    names1880 = pd.read_csv("names/yob1880.txt",names=["name","sex","number"])
 
 Instead of creating three lists, as the first two methods do, this creates one
 DataFrame.  We can access a column by name[^colname], in either of two ways:
@@ -112,13 +112,105 @@ but you can type `names1880.head()`).
 
     In [3]: names1880.head()
     Out[3]: 
-            name sex  count
-    0       Mary   F   7065
-    1       Anna   F   2604
-    2       Emma   F   2003
-    3  Elizabeth   F   1939
-    4     Minnie   F   1746
-
+            name sex  number
+    0       Mary   F    7065
+    1       Anna   F    2604
+    2       Emma   F    2003
+    3  Elizabeth   F    1939
+    4     Minnie   F    1746
+ 
 ## Summary Statistics
 
-We'll explore a few more `pandas` functions for quickly examining the data.
+That was just one example of the many functions provided by `pandas` 
+for quickly examining a dataset.  Another good one to run when inspecting
+a new set of data is the `info()` method, which tells you a bit about the size,
+number and data types of the DataFrame's columns.
+
+    In [4]: names1880.info()
+       ...:
+    <class 'pandas.core.frame.DataFrame'>
+    Int64Index: 2000 entries, 0 to 1999
+    Data columns (total 3 columns):
+    name     2000 non-null object
+    sex      2000 non-null object
+    number   2000 non-null int64
+    dtypes: int64(1), object(2)
+    memory usage: 62.5+ KB
+
+We might want to do some quick counts of the data values, for example, to see
+how many male and female names are in the dataset, with the `value_counts()`
+applied to the "sex" column:
+
+    In [5]: names1880.sex.value_counts()
+    Out[5]: 
+    M    1058
+    F     942
+    dtype: int64
+    
+That's how many *names* are in the data, but how many actual babies were born
+that year?  As you might have guessed, the relevant method is `sum()`:
+
+    In [6]: names1880.number.sum()
+    Out[6]: 201484
+    
+We can also take the sums of subsets of the data using the `groupby()` method,
+not unlike the `GROUP BY` clause in SQL.  For example, if we want the subtotals
+of the `number` column for the two sexes:
+
+    In [7]: names1880.groupby("sex").sum()
+    Out[7]: 
+         number
+    sex        
+    F     90993
+    M    110491
+
+For a visual comparison, we can do a quick bar chart with a few extra
+keystrokes:
+
+    In [7]: names1880.groupby("sex").sum().plot(kind="bar")
+    Out[7]: <matplotlib.axes._subplots.AxesSubplot at 0x10f62b00>
+
+![Fig. 2.2: A quick visual comparison](/images/ch2_quickbars.png)
+    
+What were the top names in 1880?  We can sort the DataFrame by the "number"
+column and use the `tail()` method to display the last 5 rows.  (This is
+just the opposite of what `head()` does.)
+
+    In [8]: names1880.sort("number").tail()
+    Out[8]: 
+            name sex  number
+    945  Charles   M    5348
+    944    James   M    5927
+    0       Mary   F    7065
+    943  William   M    9532
+    942     John   M    9655
+
+We may also want to know how common these names are as a percentage of the
+total population.  One of my favorite things about `pandas` is that, much like
+a spreadsheet, you can easily do calculations on entire data columns that
+result in new columns.  In other words, if we want to divide a column by a 
+certain number, we don't have to write a loop that does the calculation 
+separately on each element, nor do we have to add things up and divide only
+the grand total.  We can just do something like the following code, which
+creates a new column containing the proportion of babies with each name:
+
+    names1880["prop"]=names1880.number/(names1880.number.sum())
+
+Here's a great example of turning raw data into information that means 
+something to us.  Now we can judge just how popular certain names actually
+are... and perhaps then check to see if they retain their popularity in later
+years.
+
+    In [9]: names1880.sort("prop").tail()
+    Out[9]: 
+            name sex  number      prop
+    945  Charles   M    5348  0.026543
+    944    James   M    5927  0.029417
+    0       Mary   F    7065  0.035065
+    943  William   M    9532  0.047309
+    942     John   M    9655  0.047919
+
+## Naming Trends Over Time
+
+
+    

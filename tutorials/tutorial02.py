@@ -16,27 +16,35 @@ Created on Wed Jan 20 14:59:00 2016
 # Three ways to read a CSV file into Python
 #
 # 1. With the standard library's "open" command:
-f = open("names/yob1880.txt","r")
-names,sexes,counts=[],[],[] # create 3 empty lists
-for line in f.readlines():
-    line = line.strip().split(",")
-    names.append(line[0])
-    sexes.append(line[1])
-    counts.append(line[2])
-f.close() # close the file
+#f = open("names/yob1880.txt","r")
+#names,sexes,counts=[],[],[] # create 3 empty lists
+#for line in f.readlines():
+#    line = line.strip().split(",")
+#    names.append(line[0])
+#    sexes.append(line[1])
+#    counts.append(line[2])
+#f.close() # close the file
 
 # 2. With the "csv" library
-import csv
-
-f = open("names/yob1880.txt","r")
-names,sexes,counts=[],[],[] # create 3 empty lists
-reader = csv.reader(f)
-for row in reader:
-    names.append(row[0])
-    sexes.append(row[1])
-    counts.append(row[2])
-f.close() 
+#import csv
+#
+#f = open("names/yob1880.txt","r")
+#names,sexes,counts=[],[],[] # create 3 empty lists
+#reader = csv.reader(f)
+#for row in reader:
+#    names.append(row[0])
+#    sexes.append(row[1])
+#    counts.append(row[2])
+#f.close() 
 
 # 3. With "pandas"
 import pandas as pd
-names1880 = pd.read_csv("names/yob1880.txt",names=["name","sex","count"])
+names1880 = pd.read_csv("names/yob1880.txt",names=["name","sex","number"])
+
+# commands to run at the console to inspect the dataset
+names1880.head() # shows the first 5 rows
+names1880.info() # some info about the data types and length
+
+
+
+
