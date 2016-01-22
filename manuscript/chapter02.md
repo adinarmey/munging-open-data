@@ -490,7 +490,7 @@ Load all the data into Python and try to do the following:
     (flip rows to columns) before plotting it.  As you may guess, all
     DataFrames have a `.transpose()` method for this.
     
-    ![Fig. 2.8: Example solution](/images/joseph-1yearbox.png)
+    ![Fig. 2.8: Example solution](/images/joseph_1yearbox.png)
 
 3. Finally, produce a time series of box plots of your name's popularity in
     the fifty states over a 20-year period from 1995 through 2014.  This is
