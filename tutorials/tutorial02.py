@@ -55,7 +55,11 @@ names1880["prop"]=names1880.number/(names1880.number.sum())
 
 
 
-# now get all the years 1880-2014 into memory
+
+
+
+
+# Here's one way to load all the years 1880-2014 into memory.
 data_chunks = []
 for y in range(1880,2015): # don't be fooled; this gives us y=1880 to y=2014
     filename = "names/yob" + str(y) + ".txt" # str() converts number to text
@@ -67,11 +71,12 @@ for y in range(1880,2015): # don't be fooled; this gives us y=1880 to y=2014
 # so let's concatenate them together into one big one...
 names = pd.concat(data_chunks, ignore_index=True)
 
+
 # plot total births over time    
-names.pivot_table("number",rows="year",aggfunc=sum).plot()
+names.pivot_table("number",index="year",aggfunc=sum).plot()
 
 # pivot table to plot rise and fall for individual names
-names_series = names.pivot_table("prop",rows="year",cols="name",aggfunc=sum)
+names_series = names.pivot_table("prop",index="year",columns="name",aggfunc=sum)
 # the only actual "sum" that will be taken is if a certain name appears
 # twice in the same year's data, once for boys and once for girls
 
@@ -89,8 +94,8 @@ boys_compared=boys[boys.year%100==14]
 
 # create two columns (1914 and 2014) for each name; and drop all NA values
 # so we just keep the names that were known in both years
-boys_compared=boys_compared.pivot_table("prop",rows="name",
-  cols="year").dropna()
+boys_compared=boys_compared.pivot_table("prop",index="name",
+  columns="year").dropna()
 # create two "delta" columns -- one for the absolute drop in popularity
 # and one for its relative change in popularity
 boys_compared["absdelta"]=boys_compared[1914]-boys_compared[2014]

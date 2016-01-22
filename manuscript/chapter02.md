@@ -259,21 +259,23 @@ any given analysis, we may only be interested in one or a few of these, so
 it is convenient that `pandas` gives us a pivot table function.  To sum up
 the number of births in each year, try this:
 
-    In [11]: names.pivot_table("number",rows="year",aggfunc=sum)
+    In [11]: names.pivot_table("number",index="year",aggfunc=sum)
 
 This can be plotted as a line graph by simply appending `.plot()` after it:
 
-    In [12]: names.pivot_table("number",rows="year",aggfunc=sum).plot()
+    In [12]: names.pivot_table("number",index="year",aggfunc=sum).plot()
     Out[12]: <matplotlib.axes._subplots.AxesSubplot at 0x1fac71d0>
     
 ![Fig. 2.3: Births per year](/images/ch2_birthsperyear.png)
 
 If we want to plot a time series for a particular name, like mine, we could
-start by building a pivot table where the rows are years and the columns are
+start by building a pivot table where the rows (`index`)
+are years and the columns are
 the names.  This makes quite a few columns, and it would be hard to fit in
 a typical spreadsheet, but is very manageable in code.
 
-    names_series = names.pivot_table("prop",rows="year",cols="name",aggfunc=sum)
+    names_series = names.pivot_table("prop",index="year",
+                                      columns="name",aggfunc=sum)
 
 When naming our first three children, I aimed for "old-fashioned" names that
 were still well-known enough that people would know how to spell them.  How
@@ -297,7 +299,8 @@ different y-axis scales if it makes the trends more visible.  Adding a couple
 of arguments to the `plot()` method gives me a bigger graphic and splits it
 into subplots:
 
-    names_series[["Kermit","Declan","Virginia"]].plot(subplots=True,figsize=(12,10))
+    names_series[["Kermit","Declan","Virginia"]].plot(subplots=True,
+                                                      figsize=(12,6))
 
 ![Fig. 2.5: Historical trends of my kids' names](/images/3kidstrends.png)
 
@@ -332,8 +335,8 @@ the 1914 and 2014 data to decide which names have fallen in popularity.
     
     # There'll be two columns (1914 and 2014) for each name; drop all NA values
     # so we just keep the names that were known in both years
-    boys_compared=boys_compared.pivot_table("prop",rows="name",
-      cols="year").dropna()
+    boys_compared=boys_compared.pivot_table("prop",index="name",
+      columns="year").dropna()
       
 The pivot table method of a DataFrame, we see, is very handy for picking just
 the rows and columns we want to work with in a graphic or a calculation.
@@ -428,7 +431,8 @@ five names into a list, and use this list to plot time series as before:
 
     # get a list of 5 names to try plotting
     best5 = list(boys_compared.sort("reldelta").tail().index)
-    names_series[best5].plot(subplots=True,figsize=(12,10),title="Trends in five names")
+    names_series[best5].plot(subplots=True,figsize=(12,10),
+                             title="Trends in five names")
     
 ![Fig. 2.6: Historical trends of five names](/images/best5namesplot.png)
 
@@ -443,35 +447,80 @@ to see how much the popularity of a name varies across the states and over
 time.  Maybe some names are about equally popular everywhere, while others are
 regional.
 
-Your homework, should you choose to accept it, is to download the state-level
-data and conduct an analysis on your name (or any name you like, except 
-"Joseph").  Try to do the following:
+Your homework, should you choose to accept it, is to download the *state-level
+data set* and conduct an analysis on your name, or any name you like.  The
+files in this dataset are named for the states, so you'll need a new way to
+loop through all of them and load the data.  One way to do this is to use the
+`os` package to get the list of filenames in the "namesbystate" folder.  You'll
+also need to use a Python "`if`" statement to filter out the PDF or any other
+non-data files included.  Here's an example:
+
+    import pandas as pd
+    import os
+    statesdata=[]
+    files=os.listdir("namesbystate")
+    for f in files:
+        if f.endswith(".TXT"):
+            state = pd.read_csv("namesbystate/"+f,
+                                names=["state","sex","year","name","num"])
+            statesdata.append(state)
+    names = pd.concat(statesdata, ignore_index=True)
+  
+Load all the data into Python and try to do the following:
 
 1. First, plot the changing popularity of the name between 1910 and 2014, using
-    the state-level data.
+    the state-level data.  You can calculate this by adding up the numbers of
+    babies given this name in all 50 states (and DC), then dividing by the 
+    total of *all* births. 
+
+    Hint: If you can use `.pivot_table()` or another trick to create two
+    DataFrames of the same dimensions, you can then divide one by the other to
+    produce a third DataFrame containing the result.
     
+    ![Fig. 2.7: Example solution](/images/joseph_trend.png)
+
 2. Next, try to create a box plot of the distribution of popularity in a given
-    year, such as the year you were born.  There should be 51 data points, and
-    this is a kind of plot that shows how widely distributed they are.
+    year, such as the year you were born. This means you need the popularity
+    *per state*, which is different from the previous challenge.  For each
+    name, there will be 51 fractional values.  A box plot (or box-and-whisker 
+    plot) shows how those popularity values are distributed.
     
+    Hint: One "box" is generated for each *column* of a DataFrame.  If your
+    data has years as *row* names, you may need to **transpose** the data 
+    (flip rows to columns) before plotting it.  As you may guess, all
+    DataFrames have a `.transpose()` method for this.
+    
+    ![Fig. 2.8: Example solution](/images/joseph-1yearbox.png)
+
 3. Finally, produce a time series of box plots of your name's popularity in
-    the fifty states over a 20-year period from 1995 through 2014.
+    the fifty states over a 20-year period from 1995 through 2014.  This is
+    the same analysis as above, but for more than one year.  See figure 2.9
+    as an example.
     
-You should be able to do all of this using `pandas` functionality as 
-demonstrated in the tutorial.  For more documentation, see [pandas.pydata.org](
+    Hint:  Add the argument "`rot=90`" to the `.plot()` method if you want to
+    rotate the x-axis labels as I did in this example.
+
+    ![Fig. 2.9: Example solution](/images/joseph_trendboxes.png)
+
+You should be able to do most of this using `pandas` functionality as 
+demonstrated in the tutorial, but you may have to do some hard thinking and
+trial-and-error in manipulating the data.  If you need to see the `pandas`
+documentation, visit [pandas.pydata.org](
 http://pandas.pydata.org/).
 
 ### Grading
 
 If you do this as homework in my class, submit a Python script that
-produces a plot like Figure 2.7, below.  (You are free to embellish it or
-play around with the style, as long as it has the right data. Make sure the
+produces a plot like Figure 2.9 for a name of your choice.  Please do not use
+my name, Joseph, and do not use a name that doesn't occur in the dataset or is
+too rare to produce a result like Figure 2.9.
+
+(You are free to embellish it or improve the style, as long as it has 
+the right data. Make sure the
 plot has a title that tells me which name it is based on.  I will run my own
 version of the code and see if I get the same graphic for the given name.
 
 Make sure
 your name and student number are provided in a comment near the top of the
 code file.
-
-- **Figure 2.7 will go here**
 
