@@ -1,3 +1,8 @@
 # Chapter 4 
 
-Get some XML data that's paginated and has an access rate limit (google maps?).  Show how we can loop to build up a series of URLs.  Create an iterative script and, for each iteration, extract some stuff from XML to add to a growing data frame.  Export as CSV.
+Download live Twitter Stream data and load into MongoDB.  Use the database
+to JOIN it with some other data (a dictionary of sentiment words)
+and create a result.  Another task could be a MR job that adds up these scored
+Tweets to evaluate sentiment for brands, or politicians, or something.  As
+homework, students might then do a MR job that aggregates sentiment by date and
+brand, to produce a comparative line chart.

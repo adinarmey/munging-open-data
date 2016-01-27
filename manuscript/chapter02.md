@@ -1,4 +1,4 @@
-# Chapter 2
+# Tutorial 2
 
 ## Munging public data sets
 
@@ -224,22 +224,18 @@ all the yearly data into one big DataFrame.
 
 In order for us to later tell
 which data is from which year, we'll add a new column to each intermediate
-DataFrame for the year.  We will also compute the proportion of the year's
-births that each name accounts for during this stage, because that's relative
-to the total births in the year and would be more complicated to calculate
-with the multi-year dataset we're going to end up with.
+DataFrame for the year.
 
     data_chunks = []
     for y in range(1880,2015): # don't be fooled; this gives us y=1880 to y=2014
         filename = "names/yob" + str(y) + ".txt" # str() converts number to text
         year_y_data = pd.read_csv(filename,names=["name","sex","number"])
         year_y_data["year"] = y 
-        year_y_data["prop"] = year_y_data.number/(year_y_data.number.sum())
         data_chunks.append(year_y_data)
 
     names = pd.concat(data_chunks, ignore_index=True)
 
-If you explore this dataset, you'll see that it takes up about 70 megabyes
+If you explore this dataset, you'll see that it takes up about 70 megabytes
 of computer memory; enough that analytical functions may take a few seconds,
 but probably not enough to put you out of business.
 
@@ -254,10 +250,14 @@ but probably not enough to put you out of business.
     dtypes: int64(2), object(2)
     memory usage: 69.6+ MB
     
-We have five columns to work with: name, sex, number, prop, and year.  For
+We have four columns to work with: name, sex, number, and year.  For
 any given analysis, we may only be interested in one or a few of these, so 
-it is convenient that `pandas` gives us a pivot table function.  To sum up
-the number of births in each year, try this:
+it is convenient that `pandas` gives us a **pivot table** 
+function. Essentially this allows us to re-arrange the data table with our 
+selection
+of rows and column headings, and aggregate (e.g. sum or average) the values
+to conform to those dimensions. To sum up the number of births in each year, 
+for example, try this:
 
     In [11]: names.pivot_table("number",index="year",aggfunc=sum)
 
@@ -268,29 +268,52 @@ This can be plotted as a line graph by simply appending `.plot()` after it:
     
 ![Fig. 2.3: Births per year](/images/ch2_birthsperyear.png)
 
-If we want to plot a time series for a particular name, like mine, we could
-start by building a pivot table where the rows (`index`)
-are years and the columns are
-the names.  This makes quite a few columns, and it would be hard to fit in
-a typical spreadsheet, but is very manageable in code.
+In addition to being able to do calculations on columns, as we did with the 
+1880 data, pandas allows us to do calculations on entire DataFrame objects,
+especially if they have the same dimensionality.  In order to generate the
+time series of a name's *proportion* of births, we can use `pivot_table()` to
+create a new DataFrame with the time series of occurences of that name, another
+new DataFrame with the time series of total births, and divide one by
+the other:
 
-    names_series = names.pivot_table("prop",index="year",
-                                      columns="name",aggfunc=sum)
+    nameseries = names.pivot_table("number",index="year",
+                                   columns="name",aggfunc=sum)
+    # nameseries has 1 row per year, 1 column per name
+    josephseries = nameseries["Joseph"]
+    # josephseries has 1 row per year, but only one column
+    totalseries = names.pivot_table("number",index="year",
+                                    aggfunc=sum)
+    # totalseries has the same dimensionality but sums all births
+    (josephseries/totalseries).plot(title="Proportion named Joseph, 1880-2014")
 
-When naming our first three children, I aimed for "old-fashioned" names that
+![Fig. 2.4: Proportion named Joseph, 1880-2014](/images/ch2_propnamedjoe.png)
+
+It's also possible to divide a DataFrame by another DataFrame that does *not*
+have the same dimensionality, in which case the second term (the divisor) will
+be repeated or "broadcasted" as needed.  By default, rows will be divided by
+rows.  If we want to divide the columns of `nameseries` by the 1-column 
+`totalseries`, to generate the time series of name proportion for *all* names
+at the same time, we have to use the `.div()` function as a workaround:
+
+    propseries=nameseries.div(totalseries,axis="index")
+
+The resulting DataFrame, `propseries` has one column for each name, one
+row for each year (the same dimensions as `nameseries`), so we can select one
+or more columns at the same time.  Now, on to my problem: When naming our 
+first three children, I aimed for "old-fashioned" names that
 were still well-known enough that people would know how to spell them.  How
 well did I do?  Here's how you'd plot a time series for my oldest, Kermit:
 
-    names_series["Kermit"].plot()
+    propseries["Kermit"].plot()
 
 Remember that in this pivot table, each name has a column of its own, so we're
 using the name to select the column.  If we want to plot more than one name, we
 could use a list of indices.  That means one more pair of `[` square brackets 
 `]`:
 
-    names_series[["Kermit","Declan","Virginia"]].plot()
+    propseries[["Kermit","Declan","Virginia"]].plot() # hard to compare
     
-![Fig. 2.4: My kids' names](/images/3kidsnames.png)
+![Fig. 2.5: My kids' names](/images/3kidsnames.png)
 
 This plot is hard to analyze because my daughter's name is overhwelmingly more
 popular than either of my sons'. I'm not interested in the total popularity
@@ -299,16 +322,16 @@ different y-axis scales if it makes the trends more visible.  Adding a couple
 of arguments to the `plot()` method gives me a bigger graphic and splits it
 into subplots:
 
-    names_series[["Kermit","Declan","Virginia"]].plot(subplots=True,
-                                                      figsize=(12,6))
+    propseries[["Kermit","Declan","Virginia"]].plot(subplots=True,
+                                                    figsize=(12,6))
 
-![Fig. 2.5: Historical trends of my kids' names](/images/3kidstrends.png)
+![Fig. 2.6: Historical trends of my kids' names](/images/3kidstrends.png)
 
 I notice that Kermit's and Virginia's names both peaked around 1920, but I 
 completely missed my aim with Declan's name, which seems to have become very
 recently fashionable.  (At least in this U.S. data.  Maybe it's considered
 old-fashioned in Ireland!)
-
+ 
 ## Looking For a Good Old Boy's Name
 
 Here, then, is what I'm looking for: a name for a boy that was popular in the
@@ -327,53 +350,57 @@ values can be used as an index to return a subset of the original DataFrame:
 
 We'll use this principle again to pick out just two years to compare.  Since
 my data goes to 2014, and a hundred years is a good round number, I'll compare
-the 1914 and 2014 data to decide which names have fallen in popularity.
+the 1914 and 2014 data to decide which names have fallen in popularity.  The
+"pipe" character (`|`) means "or", so the following statement will yield rows
+where the year is 1914 *or* 2014.
 
-    # x%100 means the *remainder* when you divide x/100
-    # so the following gives you both years where that is 14 (1914 and 2014)
-    boys_compared=boys[boys.year%100==14] 
+    boys14=boys[(boys.year==1914)|(boys.year==2014)] 
+
+We pivot the data so that there is one row per name with two columns (the
+1914 and 2014 values) per row.  We add the `.dropna()` method to drop all rows
+with `NaN` ("not a number") values, hence keeping only the names that were
+known in both 1914 and 2014:
     
     # There'll be two columns (1914 and 2014) for each name; drop all NA values
     # so we just keep the names that were known in both years
-    boys_compared=boys_compared.pivot_table("prop",index="name",
-      columns="year").dropna()
-      
-The pivot table method of a DataFrame, we see, is very handy for picking just
-the rows and columns we want to work with in a graphic or a calculation.
-At this point, `boys_compared` is a two-column pivot table that I can use to
-compare the popularities of the boys' names that were known in both years.
+    boyscompared=boys14.pivot_table("prop",index="name",
+                                    columns="year").dropna()
+
+Let's look at these names as proportions of boy names.  We can
+calculate the total number of boys in each year from the `names` 
+DataFrame, and do a quick division to create new columns for `boyscompared`:
 
     In [13]: boys_compared.head()
     Out[13]: 
-    year          1914      2014
-    name                        
-    Aaron     0.000342  0.001998
-    Abbott    0.000009  0.000013
-    Abe       0.000159  0.000015
-    Abel      0.000036  0.000695
-    Abelardo  0.000004  0.000014
+    year      1914  2014     1914p     2014p
+    name                                    
+    Aaron      485  7334  0.000741  0.003857
+    Abbott      13    47  0.000020  0.000025
+    Abe        225    56  0.000344  0.000029
+    Abel        51  2551  0.000078  0.001342
+    Abelardo     6    53  0.000009  0.000028
 
 I'll add two calculated columns: one for the absolute change (or "delta")
 in a name's
 percentage of births, and one for the relative change.  These are calculated
 like so:
 
-    boys_compared["absdelta"]=boys_compared[1914]-boys_compared[2014]
-    boys_compared["reldelta"]=boys_compared["absdelta"]/boys_compared[1914]
+    boyscompared["delta"]=boyscompared["1914p"]-boyscompared["2014p"]
+    boyscompared["reldelta"]=boyscompared["delta"]/boyscompared["1914p"]
 
 Now the question that remains is: which of these comparisons is most useful for
 my purposes?  We can sort and inspect the results with methods I've shown you
 previously.  First, the names that have declined most in absolute terms:
 
-    In [14]: boys_compared.sort("absdelta").tail()
+    In [14]: boyscompared.sort("absdelta").tail()
     Out[14]: 
-    year         1914      2014  absdelta  reldelta
-    name                                           
-    George   0.012429  0.000814  0.011615  0.934496
-    Robert   0.014960  0.001791  0.013169  0.880303
-    James    0.018543  0.003897  0.014647  0.789866
-    William  0.021010  0.004547  0.016463  0.783590
-    John     0.026794  0.002888  0.023905  0.892207
+    year      1914   2014     1914p     2014p     delta  reldelta
+    name                                                         
+    George   17603   2988  0.026885  0.001571  0.025313  0.941547
+    Robert   21188   6572  0.032360  0.003456  0.028903  0.893187
+    James    26263  14301  0.040111  0.007521  0.032589  0.812484
+    William  29756  16687  0.045446  0.008776  0.036669  0.806884
+    John     37948  10600  0.057957  0.005575  0.052382  0.903809
 
 Surprisingly, we see five of what seem like the most common boys' names leading
 the list.  These are by no means old-fashioned names that have gone out of 
@@ -391,35 +418,35 @@ naming is much more diverse.[^namediversity]
 What about those names that have declined in *relative* popularity?  Well here
 we find some interesting old-fashioned sounding choices in the top 25:
 
-    In [15]: boys_compared.sort("reldelta").tail(25)
+    In [15]: boyscompared.sort("reldelta").tail(25)
     Out[15]: 
-    year           1914      2014  propdelta  absdelta  reldelta
-    name                                                        
-    Alva       0.000126  0.000002   0.000124  0.000124  0.986992
-    Claude     0.000907  0.000011   0.000895  0.000895  0.987377
-    Cleo       0.000152  0.000002   0.000150  0.000150  0.987436
-    Woodrow    0.001260  0.000016   0.001245  0.001245  0.987677
-    Norbert    0.000203  0.000002   0.000201  0.000201  0.987941
-    Elbert     0.000318  0.000004   0.000314  0.000314  0.987994
-    Earle      0.000137  0.000002   0.000135  0.000135  0.988065
-    Herman     0.001716  0.000020   0.001696  0.001696  0.988407
-    Kermit     0.000283  0.000003   0.000280  0.000280  0.988452
-    Thurman    0.000170  0.000002   0.000168  0.000168  0.988791
-    Bob        0.000153  0.000002   0.000152  0.000152  0.989330
-    Ellsworth  0.000155  0.000002   0.000153  0.000153  0.989427
-    Earl       0.002713  0.000028   0.002685  0.002685  0.989654
-    Willard    0.000919  0.000009   0.000910  0.000910  0.989923
-    Fred       0.003136  0.000030   0.003106  0.003106  0.990528
-    Homer      0.000813  0.000008   0.000806  0.000806  0.990620
-    Herbert    0.002297  0.000020   0.002277  0.002277  0.991221
-    Orville    0.000556  0.000005   0.000551  0.000551  0.991664
-    Ed         0.000202  0.000002   0.000200  0.000200  0.991904
-    Hyman      0.000237  0.000002   0.000235  0.000235  0.991960
-    Seymour    0.000173  0.000001   0.000172  0.000172  0.992124
-    Adolph     0.000295  0.000002   0.000293  0.000293  0.992614
-    Wilbur     0.000881  0.000006   0.000875  0.000875  0.992888
-    Loyd       0.000220  0.000001   0.000219  0.000219  0.993816
-    Carroll    0.000270  0.000002   0.000268  0.000268  0.993939
+    year       1914  2014     1914p     2014p     delta  reldelta
+    name                                                         
+    Alva        178     6  0.000272  0.000003  0.000269  0.988392
+    Claude     1284    42  0.001961  0.000022  0.001939  0.988736
+    Cleo        215     7  0.000328  0.000004  0.000325  0.988788
+    Woodrow    1785    57  0.002726  0.000030  0.002696  0.989004
+    Norbert     288     9  0.000440  0.000005  0.000435  0.989239
+    Elbert      450    14  0.000687  0.000007  0.000680  0.989287
+    Earle       194     6  0.000296  0.000003  0.000293  0.989350
+    Herman     2430    73  0.003711  0.000038  0.003673  0.989655
+    Kermit      401    12  0.000612  0.000006  0.000606  0.989695
+    Thurman     241     7  0.000368  0.000004  0.000364  0.989998
+    Bob         217     6  0.000331  0.000003  0.000328  0.990478
+    Ellsworth   219     6  0.000334  0.000003  0.000331  0.990565
+    Earl       3842   103  0.005868  0.000054  0.005814  0.990768
+    Willard    1302    34  0.001989  0.000018  0.001971  0.991007
+    Fred       4441   109  0.006783  0.000057  0.006725  0.991548
+    Homer      1152    28  0.001759  0.000015  0.001745  0.991630
+    Herbert    3253    74  0.004968  0.000039  0.004929  0.992166
+    Orville     787    17  0.001202  0.000009  0.001193  0.992561
+    Ed          286     6  0.000437  0.000003  0.000434  0.992776
+    Hyman       336     7  0.000513  0.000004  0.000509  0.992826
+    Seymour     245     5  0.000374  0.000003  0.000372  0.992972
+    Adolph      418     8  0.000638  0.000004  0.000634  0.993409
+    Wilbur     1248    23  0.001906  0.000012  0.001894  0.993654
+    Loyd        312     5  0.000477  0.000003  0.000474  0.994481
+    Carroll     382     6  0.000583  0.000003  0.000580  0.994591
 
 These look like the kinds of names I've been looking for, and the fact that 
 my oldest son's name is in the list confirms it.  These names may never have 
@@ -430,11 +457,11 @@ To examine these names further, what I might do is simply extract the first
 five names into a list, and use this list to plot time series as before:
 
     # get a list of 5 names to try plotting
-    best5 = list(boys_compared.sort("reldelta").tail().index)
-    names_series[best5].plot(subplots=True,figsize=(12,10),
-                             title="Trends in five names")
+    best5 = list(boyscompared.sort("reldelta").tail().index)
+    propseries[best5].plot(subplots=True,figsize=(12,10),
+                           title="Trends in five names")
     
-![Fig. 2.6: Historical trends of five names](/images/best5namesplot.png)
+![Fig. 2.7: Historical trends of five names](/images/best5namesplot.png)
 
 Well, I'm definitely not naming him Adolph, but there's great food for thought
 here.  Can you repeat this analysis but for girls' names?
@@ -477,7 +504,7 @@ Load all the data into Python and try to do the following:
     DataFrames of the same dimensions, you can then divide one by the other to
     produce a third DataFrame containing the result.
     
-    ![Fig. 2.7: Example solution](/images/joseph_trend.png)
+    ![Fig. 2.8: Example solution](/images/joseph_trend.png)
 
 2. Next, try to create a box plot of the distribution of popularity in a given
     year, such as the year you were born. This means you need the popularity
@@ -490,7 +517,7 @@ Load all the data into Python and try to do the following:
     (flip rows to columns) before plotting it.  As you may guess, all
     DataFrames have a `.transpose()` method for this.
     
-    ![Fig. 2.8: Example solution](/images/joseph_1yearbox.png)
+    ![Fig. 2.9: Example solution](/images/joseph_1yearbox.png)
 
 3. Finally, produce a time series of box plots of your name's popularity in
     the fifty states over a 20-year period from 1995 through 2014.  This is
@@ -500,7 +527,7 @@ Load all the data into Python and try to do the following:
     Hint:  Add the argument "`rot=90`" to the `.plot()` method if you want to
     rotate the x-axis labels as I did in this example.
 
-    ![Fig. 2.9: Example solution](/images/joseph_trendboxes.png)
+    ![Fig. 3.0: Example solution](/images/joseph_trendboxes.png)
 
 You should be able to do most of this using `pandas` functionality as 
 demonstrated in the tutorial, but you may have to do some hard thinking and

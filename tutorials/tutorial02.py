@@ -65,46 +65,63 @@ for y in range(1880,2015): # don't be fooled; this gives us y=1880 to y=2014
     filename = "names/yob" + str(y) + ".txt" # str() converts number to text
     year_y_data = pd.read_csv(filename,names=["name","sex","number"])
     year_y_data["year"] = y
-    year_y_data["prop"] = year_y_data.number/(year_y_data.number.sum())
     data_chunks.append(year_y_data)
 # now data_chunks contains a whole list of DataFrames, one per year,
 # so let's concatenate them together into one big one...
 names = pd.concat(data_chunks, ignore_index=True)
 
+# names.info()
 
 # plot total births over time    
 names.pivot_table("number",index="year",aggfunc=sum).plot()
 
-# pivot table to plot rise and fall for individual names
-names_series = names.pivot_table("prop",index="year",columns="name",aggfunc=sum)
-# the only actual "sum" that will be taken is if a certain name appears
-# twice in the same year's data, once for boys and once for girls
+
+nameseries = names.pivot_table("number",index="year",columns="name",aggfunc=sum)
+# nameseries has 1 row per year, 1 column per name
+josephseries = nameseries["Joseph"]
+# josephseries has 1 row per year, but only one column
+totalseries = names.pivot_table("number",index="year",aggfunc=sum)
+# totalseries has the same dimensionality as josephseries, but sums all births
+(josephseries/totalseries).plot(title="Proportion named Joseph, 1880-2014")
+
+
+#all names as proportions of births over all years
+propseries=nameseries.div(totalseries,axis="index")
+
+#propseries["Kermit"].plot()
 
 # plot my kids' names
-names_series[["Kermit","Declan","Virginia"]].plot() # hard to compare
+propseries[["Kermit","Declan","Virginia"]].plot() # hard to compare
 # now a bigger plot with different scales
-names_series[["Kermit","Declan","Virginia"]].plot(subplots=True,figsize=(12,6))
+propseries[["Kermit","Declan","Virginia"]].plot(subplots=True,figsize=(12,6))
 
 # begin our search for good boys' names by subsetting just the boys
 boys=names[names.sex=="M"]
-# x%100 means the *remainder* when you divide x/100
-# so the following gives you both years where that is 14 (1914 and 2014)
-boys_compared=boys[boys.year%100==14] 
-#boys_comparison=boys[(boys.year==1914)|(boys.year==2014)] # this also works
+# now subset just those rows of data from 1914 and 2014
+boys14=boys[(boys.year==1914)|(boys.year==2014)] 
+#boys14=boys[boys.year.isin([1914,2014])] # this also works
+#boys14=bosy[boys.year%100==14] # this too...
 
 # create two columns (1914 and 2014) for each name; and drop all NA values
 # so we just keep the names that were known in both years
-boys_compared=boys_compared.pivot_table("prop",index="name",
-  columns="year").dropna()
+boyscompared=boys14.pivot_table("number",index="name",
+                                columns="year").dropna()
+# figure these out as proportions of boys only
+totalboys1914=names.number[(names.sex=="M")&(names.year==1914)].sum()
+totalboys2014=names.number[(names.sex=="M")&(names.year==2014)].sum()
+boyscompared["1914p"]=boyscompared[1914]/totalboys1914
+boyscompared["2014p"]=boyscompared[2014]/totalboys2014
+
 # create two "delta" columns -- one for the absolute drop in popularity
 # and one for its relative change in popularity
-boys_compared["absdelta"]=boys_compared[1914]-boys_compared[2014]
-boys_compared["reldelta"]=boys_compared["absdelta"]/boys_compared[1914]
+boyscompared["delta"]=boyscompared["1914p"]-boyscompared["2014p"]
+boyscompared["reldelta"]=boyscompared["delta"]/boyscompared["1914p"]
 
 #to check out the names that have declined the most in popularity
-boys_compared.sort("absdelta").tail()
-boys_compared.sort("reldelta").tail(25)
+boyscompared.sort("delta").tail()
+boyscompared.sort("reldelta").tail(25)
 
-# get a list of 5 names to try plotting
-best5 = list(boys_compared.sort("reldelta").tail().index)
-names_series[best5].plot(subplots=True,figsize=(12,10),title="Trends in five names")
+# get a list of 5 names and try plotting them
+best5 = list(boyscompared.sort("reldelta").tail().index)
+propseries[best5].plot(subplots=True,figsize=(12,10),
+                       title="Trends in five names")
