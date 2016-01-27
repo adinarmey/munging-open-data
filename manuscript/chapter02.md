@@ -297,7 +297,7 @@ at the same time, we have to use the `.div()` function as a workaround:
 
     propseries=nameseries.div(totalseries,axis="index")
 
-The resulting DataFrame, `propseries` has one column for each name, one
+The resulting DataFrame, `propseries`, has one column for each name, one
 row for each year (the same dimensions as `nameseries`), so we can select one
 or more columns at the same time.  Now, on to my problem: When naming our 
 first three children, I aimed for "old-fashioned" names that
@@ -307,9 +307,9 @@ well did I do?  Here's how you'd plot a time series for my oldest, Kermit:
     propseries["Kermit"].plot()
 
 Remember that in this pivot table, each name has a column of its own, so we're
-using the name to select the column.  If we want to plot more than one name, we
-could use a list of indices.  That means one more pair of `[` square brackets 
-`]`:
+using the name as an index to pick the column we want to plot.  If we want 
+to plot more than one name, we could use a Python list of indices.  That means 
+one more pair of `[` square brackets `]`:
 
     propseries[["Kermit","Declan","Virginia"]].plot() # hard to compare
     
@@ -361,14 +361,20 @@ We pivot the data so that there is one row per name with two columns (the
 with `NaN` ("not a number") values, hence keeping only the names that were
 known in both 1914 and 2014:
     
-    # There'll be two columns (1914 and 2014) for each name; drop all NA values
-    # so we just keep the names that were known in both years
     boyscompared=boys14.pivot_table("prop",index="name",
                                     columns="year").dropna()
 
 Let's look at these names as proportions of boy names.  We can
 calculate the total number of boys in each year from the `names` 
 DataFrame, and do a quick division to create new columns for `boyscompared`:
+
+    # figure these out as proportions of boys only
+    totalboys1914=names.number[(names.sex=="M")&(names.year==1914)].sum()
+    totalboys2014=names.number[(names.sex=="M")&(names.year==2014)].sum()
+    boyscompared["1914p"]=boyscompared[1914]/totalboys1914
+    boyscompared["2014p"]=boyscompared[2014]/totalboys2014
+
+Check our work at the console:
 
     In [13]: boys_compared.head()
     Out[13]: 
@@ -456,7 +462,6 @@ in 1914 than they are today by multiple orders of magnitude (over 100x).
 To examine these names further, what I might do is simply extract the first
 five names into a list, and use this list to plot time series as before:
 
-    # get a list of 5 names to try plotting
     best5 = list(boyscompared.sort("reldelta").tail().index)
     propseries[best5].plot(subplots=True,figsize=(12,10),
                            title="Trends in five names")
@@ -527,7 +532,7 @@ Load all the data into Python and try to do the following:
     Hint:  Add the argument "`rot=90`" to the `.plot()` method if you want to
     rotate the x-axis labels as I did in this example.
 
-    ![Fig. 3.0: Example solution](/images/joseph_trendboxes.png)
+    ![Fig. 2.10: Example solution](/images/joseph_trendboxes.png)
 
 You should be able to do most of this using `pandas` functionality as 
 demonstrated in the tutorial, but you may have to do some hard thinking and
@@ -538,9 +543,9 @@ http://pandas.pydata.org/).
 ### Grading
 
 If you do this as homework in my class, submit a Python script that
-produces a plot like Figure 2.9 for a name of your choice.  Please do not use
+produces a plot like Figure 2.10 for a name of your choice.  Please do not use
 my name, Joseph, and do not use a name that doesn't occur in the dataset or is
-too rare to produce a result like Figure 2.9.
+too rare to produce a result like Figure 2.10.
 
 (You are free to embellish it or improve the style, as long as it has 
 the right data. Make sure the
