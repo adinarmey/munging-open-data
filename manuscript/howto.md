@@ -25,6 +25,20 @@ Sublime, emacs or vim.  Anaconda includes a free Python IDE called Spyder that
 integrates a text editor and an IPython console, which you might find 
 valuable. (Users of R will find it very similar to the exceptional RStudio IDE.)
 
+You will want to be able to launch Python and IPython from your computer's 
+command line shell.  Mac users know this as the Terminal, and Windows users
+may know it as the "DOS prompt", `cmd.exe`, or the newer PowerShell. To test
+that this works, type "python -V" and then "ipython -V" at your command 
+prompt.  This should confirm the versions of Python and IPython you have 
+installed.  If you get an error, or are seeing the wrong version number, 
+the easiest thing to do is update your `PATH` environment variable.  This 
+is done differently on each
+operating system and sometimes across versions.  For instructions,
+these links may be helpful:
+    - Mac (and Linux) users: 
+      http://coolestguidesontheplanet.com/add-shell-path-osx/
+    - Windows uers: http://www.computerhope.com/issues/ch000549.htm
+
 Continuum offers Anaconda with your choice of Python version 2 and Python 3.  I 
 developed these tutorials using Python 3.5, so if you are using any version of 
 Python 3, they should work fine.  Where possible I will try to use code that's 

@@ -361,7 +361,7 @@ We pivot the data so that there is one row per name with two columns (the
 with `NaN` ("not a number") values, hence keeping only the names that were
 known in both 1914 and 2014:
     
-    boyscompared=boys14.pivot_table("prop",index="name",
+    boyscompared=boys14.pivot_table("number",index="name",
                                     columns="year").dropna()
 
 Let's look at these names as proportions of boy names.  We can
@@ -398,7 +398,7 @@ Now the question that remains is: which of these comparisons is most useful for
 my purposes?  We can sort and inspect the results with methods I've shown you
 previously.  First, the names that have declined most in absolute terms:
 
-    In [14]: boyscompared.sort("absdelta").tail()
+    In [14]: boyscompared.sort("delta").tail()
     Out[14]: 
     year      1914   2014     1914p     2014p     delta  reldelta
     name                                                         

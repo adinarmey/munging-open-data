@@ -1,8 +1,316 @@
-# Chapter 3 
+# Tutorial 3 
 
-Get some XML data that's paginated and has an access rate limit (google maps?).  
-Show how we can loop to build up a series of URLs.  Create an iterative script 
-and, for each iteration, extract some stuff from XML to add to a MongoDB
-database.  Now do some queries on that database and generate an analysis
-(perhaps an XY scatterplot).  EG: commute time x commute miles.  As homework,
-students must accumulate a larger dataset and compare data in another way.
+## Munging your data into a database
+
+In tutorial 2, we loaded quite a lot of data from CSV files into active
+memory (or RAM).  If your personal computer is an older one, that analysis
+might have strained its limits.  As we go on to work with larger and larger 
+data sets, we will need to be
+able to work with the data where it is stored---on disk (in persistent
+memory) rather than in the computer's active memory.  A database is a
+powerful data management tool for storing, retrieving, and analyzing
+data that's too large for active memory.
+
+In this tutorial, we're going to work with data from Google Maps, one of
+the most feature-rich data web services out there, but instead of loading
+data from Google right into Python data structures, we're going to store
+it in a popular new database: MongoDB.  MongoDB is a document store, a
+modern non-relational database that stores data in binary JSON.  That
+means you don't need much training in data modeling: just structure the
+data in the way you want to use it, and MongoDB can store it that way.
+
+## Provisioning a database in the cloud
+
+MongoDB is meant to run as a server, and therefore is not as easy to set
+up as a consumer-oriented personal database like, e.g., Microsoft 
+Access.  From experience, MongoDB is a pain in the neck to try to install,
+especially on Windows, and after a couple of hours messing around with its
+configuration, you'll probably be scratching your head wondering why you
+decided you wanted to be a database administrator.  Let's consider that
+question: *do* you want to be a DBA?
+
+I sure don't.
+
+In fact, we want to *use* a database, not to install and configure 
+one, and it is our good fortune to live in the era of "the cloud".  The
+cloud is actually a marketplace for computing infrastructure, software
+platforms, and other services in which you can "pay by the drink". Where
+ten years ago you might have had to buy your own server and set up the
+software yourself, today Amazon or Microsoft or Google or Rackspace has
+abundant excess capacity in its well-managed computer centers, so you
+can simply "provision" a server or a cluster of servers and start
+building your application on it.  They pay for the air conditioning, deal
+with repairs and upgrades, and you just focus on your code.
+
+At the time of writing, the best way to provision a MongoDB database seems
+to be to use the platform-as-a-service (PaaS) company 
+[MongoLab](https://mongolab.com)[^iaas].  They offer several levels of
+service including a free "sandbox" database which should be sufficient for
+this tutorial.[^prov]  You can create an account and deploy a sandbox database
+without being asked for a credit card.
+
+[^iaas]: MongoLab in turn runs its MongoDB server instances on computing
+    infrastructure provided by one of the big infrastructure-as-a-service 
+    (IaaS) companies such as Amazon Web Services.  There is a somewhat
+    blurry line between the concepts of PaaS and IaaS.
+
+[^prov]: See MongoLab's website for up-to-date instructions.  The free
+    offering is a "single-node" deployment in the "standard line" of service
+    with a limit of 500MB at the time of this writing.
+    
+Once you've provisioned a database from MongoLab, you can check the website
+for the details on how to connect to the database.  There are two types
+of connection strings: one you can use from MongoDB's command line client,
+**mongo**, and one that you can copy and paste into your own code project,
+as we will do in this tutorial.  Before we begin, you'll also need to create
+a *database* user: a username and password that will have access to this 
+sandbox data but *not* to your MongoLab account.  (These should be 
+"disposable" credentials because other people working on your code are
+going to be able to see them.  Don't give the database user the same 
+credentials you use for your e-mail or online banking, please!)
+
+![Fig. 3.1: MongoLab connection code](/images/mongolabconnection.png)
+
+## Querying MongoDB with Python
+
+In Python, you can use the **`pymongo`** package to connect to a MongoDB
+server.  This package doesn't come installed with the Anaconda Python
+distribution, so you may need to install it manually.  Anaconda comes with
+its own updater, `conda`, which can be used at your system's command
+prompt[^prompt] by typing:
+
+    conda install pymongo
+
+If you aren't using Anaconda, you can probably use the updater that comes
+native with Python, `pip`, which works in the same way:
+
+    pip install pymongo
+    
+If you have trouble using these command-line updaters, you may need to correct
+your `PATH` so that it includes the directory where `conda` or `pip` is 
+found.  See the preface entitled "Setting Things Up" for more on the `PATH`.
+
+[^prompt]: On Windows, try opening the "Anaconda Prompt" from your Start
+    menu.  On Mac or Linux, your regular Terminal will be fine.
+    
+Once `pymongo` is installed on your computer, the following four lines of
+code will set up the database connection.  In the second line,
+of course, paste the connection URI from MongoLab's site, and substitute
+in your database user's username and password.
+
+    from pymongo import MongoClient
+    MONGO_URL = "mongodb://USERNAME:PASSWORD@SERVER/DATABASE"
+    client = MongoClient(MONGO_URL)
+    db = client.get_default_database()
+
+MongoDB's data model is very simple.  You can define any number of 
+"collections" (analogous to "tables" in other databases), and a collection
+can hold any number of documents, records, or "rows" of data. A document
+is basically a JSON object or a Python dict, and may contain nested
+objects/dicts or lists.  No action is needed to create a new collection,
+just initiate it by inserting some data:
+
+    In [1]: db.mycollection.insert_one({"answer":42})
+    Out[1]: <pymongo.results.InsertOneResult at 0x9bfafc0>
+    
+To confirm that this creates a new collection called `mycollection`, try
+the `collection_names()` method of `db`.  You may want to ignore the
+ignore those collections automatically created and managed by the database:
+
+    In [2]: db.collection_names(include_system_collections=False)
+    Out[2]: ['mycollection']
+
+Retrieving data can be quite simple, too.  The `find_one()` method retrieves
+one result for our query, or we may use the `find()` method to retrieve a list
+of all matching data.
+
+    In [3]: db.mycollection.find_one()
+    Out[3]: {'_id': ObjectId('56b50ab830e1ef0adcedb79f'), 'answer': 42}
+
+What's that messy-looking `ObjectID` in the result?  Well, a document-oriented
+database, as it is a kind of key-value store, needs a unique "key" by which it
+can address each document.  Since we inserted a document without assigning
+the `_id` value, it created this unique-by-design object to serve as the 
+key.  When building a real database, you need to decide whether to use a
+key of your own, a unique "natural key" like a social security or phone
+number, or a key automatically generated by the database.
+
+When we inserted our first document, you may have noticed that the command
+produced a result, a `pymongo.results.InsertOneResult` object.  If we had
+wanted, we could have assigned this to a variable, and inspected its
+`inserted_id` to fetch the newly-generated key.
+
+    In [4]: x = db.mycollection.insert_one({"question":"to be or not to be"})
+
+    In [5]: x.inserted_id
+    Out[5]: ObjectId('56b5119730e1ef0adcedb7a4')
+
+This becomes useful if we want to use the key to retrieve the data later. The
+way you specify query criteria in MongoDB is to pass a dict of keys and
+values as the first argument to the `find()` or `find_one()` methods.  The
+simplest usage merely specifies a value that you want the results to match:
+
+    In [6]: db.mycollection.find_one({"_id":x.inserted_id})
+    Out[6]: {'_id': ObjectId('56b5119730e1ef0adcedb7a4'), 
+             'question': 'to be or not to be'}
+             
+The second argument to the query method is a "projection parameter" dict 
+that tells the database 
+which *parts* of
+the result to return.  For example, if you don't want to see the `_id`,
+assign the value `False` (or zero) to that key.
+
+    In [7]: db.mycollection.find_one({"_id":x.inserted_id},{"_id":False})
+    Out[7]: {'question': 'to be or not to be'}
+
+### More advanced queries
+
+To demonstrate a few more of MongoDB's query capabilities, you can use this
+somewhat silly list of superhero data, or create your own.  
+
+    heroes = [  {'name':'Batman', 'secret identity':'Bruce Wayne',
+                 'portrayals': [ {'year':1989,'actor':'Michael Keaton'},
+                                 {'year':1995,'actor':'Val Kilmer'},
+                                 {'year':1997,'actor':'George Clooney'},
+                                 {'year':2005,'actor':'Christian Bale'},
+                                 {'year':2016,'actor':'Ben Affleck'} ] },
+                {'name':'Superman', 'secret identity':'Clark Kent',
+                 'portrayals': [ {'year':1978,'actor':'Christopher Reeve'},
+                                 {'year':2006,'actor':'Brandon Routh'},
+                                 {'year':2013,'actor':'Henry Cavill'} ] },
+                {'name':'Aquaman', 'secret identity':'Arthur Curry',
+                 'portrayals': [ {'year':2016, 'actor':'Jason Momoa'} ] },
+                {'name':'Antman','secret identity':'Hank Pym',
+                 'portrayals': [ {'year':2015, 'actor':'Michael Douglas'},
+                                 {'year':2015, 'actor':'Paul Rudd'} ] }  ]
+
+Because I have
+created it as a list of dicts, it can be inserted directly into a new
+database collection with the `insert_many()` method:
+
+    In [8]: db.heroes.insert_many(heroes)
+    Out[8]: <pymongo.results.InsertManyResult at 0x9c2a1f8>
+
+We can retrieve a result, as before, with an exact match.  In this example,
+again, we exclude the `_id`.
+
+    In [9]: db.heroes.find_one({"name":"Aquaman"},{"_id":0})
+    Out[9]: 
+    {'name': 'Aquaman',
+     'portrayals': [{'actor': 'Jason Momoa', 'year': 2016}],
+     'secret identity': 'Arthur Curry'}
+
+But instead of an exact match, we could use a comparison.  MongoDB supports
+the `$gt` and `$lt` operators for "greater than" and "less than", and several
+others.  To query for all heroes except those whose names start with A,
+specify that you want `name` "greater than or equal to" the letter B.
+
+    In [10]: db.heroes.find({"name":{"$gte":"B"}},{"_id":0})
+    Out[10]: <pymongo.cursor.Cursor at 0x9c389e8>
+    
+The `find()` method returns a database cursor.  This is a data structure like
+a list that you can iterate through, but only once.  If you'd like to keep it
+in memory, you can convert it to a Python list with the built-in `list()`
+function.  In the last step, I didn't assign the query result to a variable,
+so I ought to do the query again.  However, a nice feature of the IPython
+console (not present in plain Python), is that you can refer back to the
+output of previous commands simply using an underscore and the output 
+index.  In this case, we want the data we saw labeled `Out[10]` so we can
+just type
+
+    In [11]: list(_10)
+
+Here are some other queries to try.
+
+Let's say you want to query for matching values in an embedded structure,
+such as the name of an actor who portrayed a hero.
+
+    db.heroes.find({"portrayals.actor":"Christopher Reeve"},{"_id":0})
+
+You can also make more than one comparison at the same time, for example,
+you might want to find which heroes had been seen in film in a particular
+decade.
+
+    db.heroes.find({"portrayals.year":{"$gte":2000,"$lt":2010}},{"_id":0})
+    
+You may notice that this query returns data on both heroes (Superman and 
+Batman) including *all* the film portrayals for each---even those not in
+the specified decade---but it excludes characters with no portrayals in
+that decade.  MongoDB is meant to store and retrieve documents as wholes
+and not filter their sub-structures, so this is normal behavior.  It is
+possible to use the projection parameter, though, to do this filtering
+by using the projection parameter in this way:
+
+    db.heroes.find({"portrayals.year":{"$gte":2000,"$lt":2010}},
+                   {"_id":0,"name":1,"portrayals.$":1})
+
+You can also apply a projection to the entire collection, without any 
+query criteria, by simply passing an empty dict `{}` as the first argument
+to the `find()` method:
+
+    db.heroes.find({},{"_id":0,"name":1,"secret identity":1})
+
+Once you have finished experimenting with database queries, you might want to
+delete ("drop") the two collections we created---especially if, like me, you're 
+using a
+free but very limited sandbox deployment.
+
+    db.heroes.drop()
+    db.mycollection.drop()
+
+You can confirm that these collections are gone by running `collection_names()`
+again.
+    
+## Google's APIs
+
+Sign up for the Google Maps API and get a Browser Key.
+Explore what we can do with the Distance Matrix.  Let's say we want to
+calculate commute times for a set of zip codes.
+
+This is a lot of data, though, and complex.  Also, it will take us several
+minutes or hours to download all we need (max 2500 queries per day).  Instead
+of loading it each time we run our analysis, we'll get it once from Google
+and store it in a database where we can analyze it at our leisure.
+
+Sign up for a MongoDB database from Mongolab.
+
+Here's the basic plan:
+
+
+Import a list of zip codes in AZ.
+Connect to a Mongo database.
+
+Loop through all zip codes:
+  -Query Google for distance and driving time at 8:00am on Monday from 
+   each zip code to our location: 300 E. Lemon St., Tempe, AZ.
+  -Stash the result in a collection in the Mongo database.
+
+Now that all data is loaded, run some queries.
+Plot an XY scatterplot of distance and driving time.
+Highlight and label the slowest and fastest commutes (add dot and label to the 
+graph).
+
+
+HOMEWORK
+
+Use the Google Places API to build up a database of all bookstores within 10km
+of this building (longitude and latitude are ...).
+
+1. Load all the bookstores within 50km of here. location=33.417,-111.934
+2. Use the 'details' API endpoint to load all reviews for each bookstore.
+3. Use the distance matrix to find the driving time to each bookstore.
+4. Do an XY plot of distance (x) and average rating (y) for all these stores.
+   Put a label on the highest-rated one.
+   
+   
+   
+## References and Recommended Reading
+
+- PyMongo tutorial in the MongoDB documentation: 
+  [Link](http://api.mongodb.org/python/current/tutorial.html)
+- MongoDB documentation on the `find()` method 
+  [Link](https://docs.mongodb.org/manual/reference/method/db.collection.find/)
+  gives lots of examples of MongoDB queries and projection parameters. Be 
+  aware that MongoDB has a JavaScript shell so some details will be 
+  different when using `pymongo` as the middleman. For example, Python
+  is stricter about requiring quotation marks around keys.
