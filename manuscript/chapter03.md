@@ -261,7 +261,178 @@ free but very limited sandbox deployment.
 You can confirm that these collections are gone by running `collection_names()`
 again.
     
-## Google's APIs
+## Getting to know the Google Maps APIs
+
+In Tutorial 1, we used a free web service API from NOAA in part because it was
+easy; we didn't need any kind of account to access it.  Most APIs that you will
+want to use, even if free, require a little bit of setup.  To get started,
+browse to [Google Developers](https://developers.google.com/) and explore the
+product directory.  In this tutorial, we'll use the [Google Maps Distance
+Matrix API](https://developers.google.com/maps/documentation/distance-matrix/), 
+which calculates distance and driving time between given 
+addresses.  Explore the information and samples on the web to learn about
+how to use this API and what the data looks like.  To enable the API, 
+you'll need to do three steps, assuming you already have a Google or Gmail 
+account of some kind:
+
+1. Create a project.  It doesn't matter what' it's called.  You might create 
+   one generic project for all your
+   work in these tutorials.
+2. Activate the Google Maps Distance Matrix APIs.  Google has lots of APIs
+   and you have to manually specify which one(s) your project should have 
+   access to.
+3. Create an "API key".  This is a unique code that identifies you to the
+   API, so Google can enforce data rate limits.  (At time of writing, they
+   allow 2500 API requests per day for free; for more, you'd have to pay.)
+   
+Once that's done, you should be able to access the API via a simple Python
+program similar to what we used in Tutorial 1.  In this case, the main
+request parameters that go into the URL are "origins", "destinations", and 
+"key".
+
+    import requests
+    import json
+    mykey="YOUR GOOGLE MAPS API KEY"
+    fro="Tempe, AZ"
+    to="Disneyland"
+    re = requests.get(
+        "https://maps.googleapis.com/maps/api/distancematrix/json?"
+        "origins="+fro+"&destinations="+to+"&key="+mykey)
+    r = json.loads(re.content.decode())
+    # pretty-print the output
+    print(json.dumps(r,indent=2))
+
+Just like on the Google Maps website, Google can generally work with partial
+addresses like a city name or zip code, or even something like "Disneyland",
+which I see is only five and a half hours away from where I'm sitting.
+
+## Loading our database with Distance Matrix data
+
+Along with this tutorial, I've provided a CSV file of zip codes in Arizona, 
+also available [on the GitHub site for this book](https://github.com/joeclark-phd/munging-open-data/blob/master/tutorials/AZ_zipcodes.csv. 
+
+What I want to do is find the driving time to my office
+from each zipcode, and analyze them to see which towns and cities 
+would offer the 
+most time-efficient commutes (that is, the greatest distance covered in the
+least time).  There are 567 zip codes, which means I'll call the Google Maps
+API 567 times, and I definitely don't want to re-do that work every time I
+iterate on this code.  Therefore, the plan is to load each result into
+a database, and analyze it by querying the database.
+
+Because we can only hit the API up to 2500 times per day, we've got to get
+this right in the first few tries.  Using the results of the test request,
+above, you can see that the response structure has some pretty complex
+nesting, and we don't need all of it.  For our purposes, we can create
+a new document by picking and choosing some values out of the response 
+data, which I called "`r`":
+
+d = {"origin":r["origin_addresses"][0],
+     "duration":r["rows"][0]["elements"][0]["duration"]["value"],
+     "distance":r["rows"][0]["elements"][0]["distance"]["value"] }
+
+Now, we load the zip codes from the CSV file, using `pandas` as in Tutorial 2.
+
+    import pandas as pd
+    zips = pd.read_csv("AZ_zipcodes.csv",names=["zip"],dtype="str")
+
+Now, we'll loop through the zip codes and for each one, request data from the
+Google API, reformat it into the simpler structure as above, and then insert
+it into a new collection called "routes" in the database.  I'll take this step
+by step because there are some changes.
+
+First, load the required libraries and make the database connection:
+
+    from pymongo import MongoClient
+    import requests
+    import json
+
+    MONGO_URL = "mongodb://USERNAME:PASSWORD@SERVER.mongolab.com:PORT/DATABASE"
+    client = MongoClient(MONGO_URL)
+    db = client.get_default_database()
+
+Initialize the fixed parts of the URLs we'll be generating.  Only the zip code
+will change with each API request.
+
+    to="300 E Lemon St, Tempe AZ" # the author's office building
+    mykey="YOUR GOOGLE MAPS API KEY"
+
+I like to put
+a line in my code that empties the database, so that if I subsequently
+fix a mistake and re-run the code, I don't end up with double the
+data.
+
+    db.routes.drop()
+
+The loop begins as you might expect:
+
+    for z in zips.zip:
+        # get the data from Google
+        re = requests.get(
+        "https://maps.googleapis.com/maps/api/distancematrix/json?"
+        "origins="+z+"&destinations="+to+"&key="+mykey)
+        r = json.loads(re.content.decode())
+
+Now I like to add a little error check before loading the database.  If the
+result doesn't contain a "distance" element, then Google may have made a 
+mistake or perhaps I might have sent it an invalid zip code.  Either way,
+I want to skip it.  This `if` statement seems to be a filter for empty
+responses:
+
+        if "distance" in r["rows"][0]["elements"][0].keys():
+
+From each valid response I construct a nice little data item as above, but
+with one addition: I store the zip code itself.
+
+            d = {"zip":z,
+                 "origin":r["origin_addresses"][0],
+                 "duration":r["rows"][0]["elements"][0]["duration"]["value"],
+                 "distance":r["rows"][0]["elements"][0]["distance"]["value"] }
+            db.routes.insert_one(d)
+
+Finally, I want each iteration of this process to print a message to the
+screen so that I can see the progress.  Without this, the program may run
+fine but all I may see is a frozen screen for several minutes.
+
+        print("processed zip code "+z+"...")
+
+The complete code for this process is as follows:
+
+    import pandas as pd
+    zips = pd.read_csv("AZ_zipcodes.csv",names=["zip"],dtype="str")
+
+    from pymongo import MongoClient
+    import requests
+    import json
+
+    MONGO_URL = "mongodb://joe:root@ds051933.mongolab.com:51933/cis355sandbox"
+    client = MongoClient(MONGO_URL)
+    db = client.get_default_database()
+
+    to="300 E Lemon St, Tempe AZ" # the author's office building
+    mykey="AIzaSyCEqH1F0f7kHhVvn8YqBgMVMFi6x4Fb_4g"
+
+    db.routes.drop()
+
+    for z in zips.zip:
+        re = requests.get(
+        "https://maps.googleapis.com/maps/api/distancematrix/json?"
+        "origins="+z+"&destinations="+to+"&key="+mykey)
+        r = json.loads(re.content.decode())
+        if "distance" in r["rows"][0]["elements"][0].keys():
+            d = {"zip":z,
+                 "origin":r["origin_addresses"][0],
+                 "duration":r["rows"][0]["elements"][0]["duration"]["value"],
+                 "distance":r["rows"][0]["elements"][0]["distance"]["value"] }
+            db.routes.insert_one(d)
+        print("processed zip code "+z+"...")
+
+## Querying our data
+
+First, let's make some checks to see if our data was loaded properly...
+
+
+
 
 Sign up for the Google Maps API and get a Browser Key.
 Explore what we can do with the Distance Matrix.  Let's say we want to
