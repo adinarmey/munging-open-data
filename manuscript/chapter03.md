@@ -538,7 +538,7 @@ y = thedf.distance[i]
 # plotting
 import matplotlib.pyplot as plt
 thedf.plot(kind="scatter",x="duration",y="distance",
-           xlim=[0,600],ylim=[0,600],figsize=[7,4])
+           xlim=[0,600],ylim=[0,600],figsize=[9,6])
 plt.title("Time and distance of Arizona commutes to Tempe", fontsize=14)
 plt.xlabel("driving time (minutes)", fontsize=14)
 plt.ylabel("distance (miles)", fontsize=14)
