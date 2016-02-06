@@ -429,39 +429,125 @@ The complete code for this process is as follows:
 
 ## Querying our data
 
-First, let's make some checks to see if our data was loaded properly...
+First, let's make some checks to see if our data was loaded properly.  The
+`count()` method will tell me how many *valid* records I found, and I can 
+query one as a sample to see whether it has the intended structure.
 
+    In [12]: db.routes.count()
+    Out[12]: 524
 
+    In [13]: db.routes.find_one()
+    Out[13]: 
+    {'_id': ObjectId('56b5350030e1ef0adcedb7a9'),
+     'distance': 19381,
+     'duration': 1217,
+     'origin': 'Phoenix, AZ 85001, USA',
+     'zip': '85001'}
 
+To retrieve all the data, we need a pretty simple `find()` query.  Use `list()`
+to convert it to a normal Python list, just in case we want to loop through
+it more than once.
 
-Sign up for the Google Maps API and get a Browser Key.
-Explore what we can do with the Distance Matrix.  Let's say we want to
-calculate commute times for a set of zip codes.
+    thecursor = db.routes.find({},{"_id":0})  # thecursor is a database "cursor"
+    thedata = list(thecursor)  # thedata is a normal Python list
 
-This is a lot of data, though, and complex.  Also, it will take us several
-minutes or hours to download all we need (max 2500 queries per day).  Instead
-of loading it each time we run our analysis, we'll get it once from Google
-and store it in a database where we can analyze it at our leisure.
+The data is conceptually very much like a spreadsheet or relational database
+table: it consists of a list of "rows", each with the same four elements. With
+the `pandas` package, we can very easily convert this to a DataFrame and take
+advantage of a DataFrame's affordances for plotting, finding the maxima, and
+more.
 
-Sign up for a MongoDB database from Mongolab.
+    import pandas as pd
+    thedf = pd.DataFrame(thedata)  # thedf is a DataFrame
 
-Here's the basic plan:
+The goal is an XY scatter plot of distance and duration.  This is a good
+type of data visualization to show the relationship between two variables.
 
+    thedf.plot(kind="scatter",x="duration",y="distance")
 
-Import a list of zip codes in AZ.
-Connect to a Mongo database.
+![Fig. 3.2: Output of first plot command](/images/tut03_m_s.png)
 
-Loop through all zip codes:
-  -Query Google for distance and driving time at 8:00am on Monday from 
-   each zip code to our location: 300 E. Lemon St., Tempe, AZ.
-  -Stash the result in a collection in the Mongo database.
+Already you can see, as you'd expect, that mileage is tightly correlated with 
+driving time.  We can improve this visualization in several ways, 
+however. First, let's convert those distances from meters to miles, and
+the driving time from seconds to minutes.
 
-Now that all data is loaded, run some queries.
-Plot an XY scatterplot of distance and driving time.
-Highlight and label the slowest and fastest commutes (add dot and label to the 
-graph).
+    thedf.distance = thedf.distance/1609.34  # meters to miles
+    thedf.duration = thedf.duration/60  # seconds to minutes
 
+We can also increase the size of the plot, and set the limits of the X and Y
+axes so that we aren't displaying the space below zero on either axis.  In 
+addition, by importing the `pypplot` package that we used in Tutorial 1,
+we can tweak various aspects of the plot like the title and labels.
 
+    import matplotlib.pyplot as plt
+    thedf.plot(kind="scatter",x="duration",y="distance",
+               xlim=[0,600],ylim=[0,600],figsize=[7,4])
+    plt.title("Time and distance of Arizona commutes to Tempe", fontsize=14)
+    plt.xlabel("driving time (minutes)", fontsize=14)
+    plt.ylabel("distance (miles)", fontsize=14)
+
+Also, I'd like to highlight the most efficient commute, that is, the one that
+allows me to drive the fastest!  We're going to plot a single point on top
+of the existing graph at (x,y) where x is the duration and y is the distance
+of the fastest commute.  We first calculate the ratio of distance to time
+for the whole DataFrame, then use the `idxmax()` method to find the index
+of the row that has the maximum value:
+
+    thedf["speed"] = thedf.distance/thedf.duration
+    i = thedf.speed.idxmax()
+    x = thedf.duration[i]
+    y = thedf.distance[i]
+
+The `plt.plot()` function takes as its first two arguments a list of x values
+and list of y values.  To draw a single dot, we can give it single values.  The
+parameter "ro" specifies a red circle, and "ms" (marker size) makes it larger
+than the other dots:
+
+    plt.plot(x,y,"ro",ms=12)
+
+The dot is nice, but I'd also like to annotate the plot with a note.  First,
+draw a red line from the center of the dot to a point over to the right.  This
+is essentially a data series of two points:
+
+    plt.plot([x,325],[y,y],"r")
+
+The following command adds a note at the right end of the red line we just
+drew, including the address with the fastest commute and the speed in miles
+per hour.
+
+    plt.text(325,y,
+             "Fastest commute:\n"+thedf.origin[i]+"\n"+
+              str(thedf.speed[i]*60)+"mph",
+             fontsize=14,verticalalignment="center")
+
+The complete visualization code and the finished plot are as follows:
+
+~~~
+# find the best commute (fastest miles/minute)
+thedf["speed"] = thedf.distance/thedf.duration
+i = thedf.speed.idxmax()
+x = thedf.duration[i]
+y = thedf.distance[i]
+
+# plotting
+import matplotlib.pyplot as plt
+thedf.plot(kind="scatter",x="duration",y="distance",
+           xlim=[0,600],ylim=[0,600],figsize=[7,4])
+plt.title("Time and distance of Arizona commutes to Tempe", fontsize=14)
+plt.xlabel("driving time (minutes)", fontsize=14)
+plt.ylabel("distance (miles)", fontsize=14)
+plt.plot(x,y,"ro",ms=12)
+plt.plot([x,325],[y,y],"r")
+plt.text(325,y,
+         "Fastest commute:\n"+thedf.origin[i]+"\n"+
+          str(thedf.speed[i]*60)+"mph",
+         fontsize=14,verticalalignment="center")
+~~~
+             
+![Fig. 3.3: Completed XY plot](/images/tut03_mi_min.png)
+    
+    
 HOMEWORK
 
 Use the Google Places API to build up a database of all bookstores within 10km
