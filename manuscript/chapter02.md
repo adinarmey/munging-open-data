@@ -471,7 +471,7 @@ five names into a list, and use this list to plot time series as before:
 Well, I'm definitely not naming him Adolph, but there's great food for thought
 here.  Can you repeat this analysis but for girls' names?
 
-## Extending this Exercise
+## Extending this exercise
 
 There's another, related dataset provided by the Social Security 
 Administration which breaks down the names by states.  It would be interesting

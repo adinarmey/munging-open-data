@@ -527,7 +527,7 @@ per hour.
 
 The complete visualization code and the finished plot are as follows:
 
-{title="Visualization code"}
+{title="Complete visualization code"}
 ~~~~~~~~
 # find the best commute (fastest miles/minute)
 thedf["speed"] = thedf.distance/thedf.duration
@@ -553,20 +553,46 @@ plt.text(325,y,
 ![Fig. 3.3: Completed XY plot](/images/tut03_mi_min.png)
     
     
-HOMEWORK
+## Extending this exercise 
 
-Use the Google Places API to build up a database of all bookstores within 10km
-of this building (longitude and latitude are ...).
+These are some extensions you can do to develop your skills:
 
-1. Load all the bookstores within 50km of here. location=33.417,-111.934
-2. Use the 'details' API endpoint to load all reviews for each bookstore.
-3. Use the distance matrix to find the driving time to each bookstore.
-4. Do an XY plot of distance (x) and average rating (y) for all these stores.
-   Put a label on the highest-rated one.
+1. Google also offers a "Google Places API" which lets you look up businesses
+   and other public places around a map location.  Explore this API and find
+   out how to request a list of all bookstores within 50km of my office.  My
+   office is at latitude 33.417, longitude -111.934.
+
+2. The Google Places API also offers a "details" mode that gives you more 
+   information about one business at a time.  Use this API to load all the
+   *reviews* that Google provides for each bookstore.  Calculate the average
+   review score.
    
+3. Now use the Google Maps Distance Matrix API to get the driving distance
+   from each bookstore to my office.  Now store all this data in a MongoDB
+   database; for each record, store the name, address, average rating, and
+   driving distance.
    
+4. Retrieve the data from the database and create an XY plot of distance (x)
+   and average rating (y) for all the bookstores you found.  Place an
+   annotation on the highest-rated one, with its name and the distance.
    
-## References and Recommended Reading
+### Grading
+
+For homework in my class, submit a Python script that queries your database
+and generates the data visualization described in #4.  The style, colors,
+annotations, etc. do not need to be exactly the same.  Also, do not include
+the code that queries the Google APIs and loads the database.  (This should
+already be done and not need repeating.  You may keep the code but comment
+it out, if you'd like me to be able to see your work.)
+
+An example of the output will be provided soon.
+
+Note that Google estimates driving time based on current conditions and the
+time of day, so your data may not be exactly the same as mine.
+
+
+   
+## Essential References
 
 - PyMongo tutorial in the MongoDB documentation: 
   [Link](http://api.mongodb.org/python/current/tutorial.html)
