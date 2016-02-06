@@ -13,8 +13,7 @@ Created on Thu Feb 4 2016
 from pymongo import MongoClient
 
 # your database connection URL from MongoLab:
-#MONGO_URL = "mongodb://USERNAME:PASSWORD@SERVER.mongolab.com:PORT/DATABASE"
-MONGO_URL = "mongodb://joe:root@ds051933.mongolab.com:51933/cis355sandbox"
+MONGO_URL = "mongodb://USERNAME:PASSWORD@SERVER.mongolab.com:PORT/DATABASE"
 client = MongoClient(MONGO_URL)
 db = client.get_default_database()
 
@@ -65,7 +64,7 @@ db.heroes.drop()
 import requests
 import json
 # your API key
-mykey="AIzaSyCEqH1F0f7kHhVvn8YqBgMVMFi6x4Fb_4g"
+mykey="YOUR GOOGLE MAPS API KEY"
 fro="Tempe, AZ"
 to="Disneyland"
 re = requests.get(
@@ -98,12 +97,12 @@ from pymongo import MongoClient
 import requests
 import json
 # make the database connection
-MONGO_URL = "mongodb://joe:root@ds051933.mongolab.com:51933/cis355sandbox"
+MONGO_URL = "mongodb://USERNAME:PASSWORD@SERVER.mongolab.com:PORT/DATABASE"
 client = MongoClient(MONGO_URL)
 db = client.get_default_database()
 # set the fixed URL paramaters
 to="300 E Lemon St, Tempe AZ" # the author's office building
-mykey="AIzaSyCEqH1F0f7kHhVvn8YqBgMVMFi6x4Fb_4g"
+mykey="YOUR GOOGLE MAPS API KEY"
 # drop the data collection, in case you need to re-run this code
 db.routes.drop()
 # now do the following for every zip code
@@ -122,27 +121,43 @@ for z in zips.zip:
     # let us know progress is being made
     print("processed zip code "+z+"...")
 
-# Now we query the database to get a table of distance (miles) 
-# and time (minutes) for each route we analyzed
 
 
-# Query the database
-thedata = db.routes.find({},{"_id":False,
-                             "zip":True,
-                             "response.distance.value":True,
-                             "response.duration.value":True})
-# thedata is a "cursor", a kind of list we can iterate through
-# but only once.  loop through to create three columns of data
-qzips = []
-qdist = []
-qtime = []                             
-for q in thedata:
-    qzips.append(q["zip"])
-    qdist.append(q["response"]["distance"]["value"])
-    qdist.append(q["response"]["duration"]["value"])
 
-# this should combine the lists into a DataFrame
-df = pd.DataFrame({"qzips":qzips,"qdist":qdist,"qtime":qtime})
+# repeat of the database connection code, in case we are starting from here
+#from pymongo import MongoClient
+#MONGO_URL = "mongodb://USERNAME:PASSWORD@SERVER.mongolab.com:PORT/DATABASE"
+#client = MongoClient(MONGO_URL)
+#db = client.get_default_database()
+# query the database
+thecursor = db.routes.find({},{"_id":0})  # thecursor is a database "cursor"
+thedata = list(thecursor)  # thedata is a normal Python list
+import pandas as pd
+thedf = pd.DataFrame(thedata)  # thedf is a DataFrame
+
+thedf.distance = thedf.distance/1609.34  # meters to miles
+thedf.duration = thedf.duration/60  # seconds to minutes
 
 # now plot an XY chart of distance x time
 # and add a "dot" and label for the slowest and fastest commute
+thedf.plot(kind="scatter",x="duration",y="distance")
+
+# find the best commute (fastest miles/minute)
+thedf["speed"] = thedf.distance/thedf.duration
+i = thedf.speed.idxmax()
+x = thedf.duration[i]
+y = thedf.distance[i]
+
+# plotting
+import matplotlib.pyplot as plt
+thedf.plot(kind="scatter",x="duration",y="distance",
+           xlim=[0,600],ylim=[0,600],figsize=[9,6])
+plt.title("Time and distance of Arizona commutes to Tempe", fontsize=14)
+plt.xlabel("driving time (minutes)", fontsize=14)
+plt.ylabel("distance (miles)", fontsize=14)
+plt.plot(x,y,"ro",ms=12)
+plt.plot([x,325],[y,y],"r")
+plt.text(325,y,
+         "Fastest commute:\n"+thedf.origin[i]+"\n"+
+          str(thedf.speed[i]*60)+"mph",
+         fontsize=14,verticalalignment="center")
