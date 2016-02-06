@@ -327,9 +327,9 @@ nesting, and we don't need all of it.  For our purposes, we can create
 a new document by picking and choosing some values out of the response 
 data, which I called "`r`":
 
-d = {"origin":r["origin_addresses"][0],
-     "duration":r["rows"][0]["elements"][0]["duration"]["value"],
-     "distance":r["rows"][0]["elements"][0]["distance"]["value"] }
+    d = {"origin":r["origin_addresses"][0],
+         "duration":r["rows"][0]["elements"][0]["duration"]["value"],
+         "distance":r["rows"][0]["elements"][0]["distance"]["value"] }
 
 Now, we load the zip codes from the CSV file, using `pandas` as in Tutorial 2.
 
@@ -398,34 +398,38 @@ fine but all I may see is a frozen screen for several minutes.
 
 The complete code for this process is as follows:
 
-    import pandas as pd
-    zips = pd.read_csv("AZ_zipcodes.csv",names=["zip"],dtype="str")
 
-    from pymongo import MongoClient
-    import requests
-    import json
+{title="Complete code to load data from Google into MongoDB"}
+~~~~~~~~
+import pandas as pd
+zips = pd.read_csv("AZ_zipcodes.csv",names=["zip"],dtype="str")
 
-    MONGO_URL = "mongodb://joe:root@ds051933.mongolab.com:51933/cis355sandbox"
-    client = MongoClient(MONGO_URL)
-    db = client.get_default_database()
+from pymongo import MongoClient
+import requests
+import json
 
-    to="300 E Lemon St, Tempe AZ" # the author's office building
-    mykey="AIzaSyCEqH1F0f7kHhVvn8YqBgMVMFi6x4Fb_4g"
+MONGO_URL = "mongodb://joe:root@ds051933.mongolab.com:51933/cis355sandbox"
+client = MongoClient(MONGO_URL)
+db = client.get_default_database()
 
-    db.routes.drop()
+to="300 E Lemon St, Tempe AZ" # the author's office building
+mykey="AIzaSyCEqH1F0f7kHhVvn8YqBgMVMFi6x4Fb_4g"
 
-    for z in zips.zip:
-        re = requests.get(
-        "https://maps.googleapis.com/maps/api/distancematrix/json?"
-        "origins="+z+"&destinations="+to+"&key="+mykey)
-        r = json.loads(re.content.decode())
-        if "distance" in r["rows"][0]["elements"][0].keys():
-            d = {"zip":z,
-                 "origin":r["origin_addresses"][0],
-                 "duration":r["rows"][0]["elements"][0]["duration"]["value"],
-                 "distance":r["rows"][0]["elements"][0]["distance"]["value"] }
-            db.routes.insert_one(d)
-        print("processed zip code "+z+"...")
+db.routes.drop()
+
+for z in zips.zip:
+    re = requests.get(
+    "https://maps.googleapis.com/maps/api/distancematrix/json?"
+    "origins="+z+"&destinations="+to+"&key="+mykey)
+    r = json.loads(re.content.decode())
+    if "distance" in r["rows"][0]["elements"][0].keys():
+        d = {"zip":z,
+             "origin":r["origin_addresses"][0],
+             "duration":r["rows"][0]["elements"][0]["duration"]["value"],
+             "distance":r["rows"][0]["elements"][0]["distance"]["value"] }
+        db.routes.insert_one(d)
+    print("processed zip code "+z+"...")
+~~~~~~~~
 
 ## Querying our data
 
@@ -523,7 +527,8 @@ per hour.
 
 The complete visualization code and the finished plot are as follows:
 
-~~~
+{title="Visualization code"}
+~~~~~~~~
 # find the best commute (fastest miles/minute)
 thedf["speed"] = thedf.distance/thedf.duration
 i = thedf.speed.idxmax()
@@ -543,7 +548,7 @@ plt.text(325,y,
          "Fastest commute:\n"+thedf.origin[i]+"\n"+
           str(thedf.speed[i]*60)+"mph",
          fontsize=14,verticalalignment="center")
-~~~
+~~~~~~~~
              
 ![Fig. 3.3: Completed XY plot](/images/tut03_mi_min.png)
     
