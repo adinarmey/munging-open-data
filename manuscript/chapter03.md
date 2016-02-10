@@ -559,13 +559,11 @@ These are some extensions you can do to develop your skills:
 
 1. Google also offers a "Google Places API" which lets you look up businesses
    and other public places around a map location.  Explore this API and find
-   out how to request a list of all bookstores within 50km of my office.  My
+   out how to request a list of all bookstores within 50km of my office, using
+   the "Nearby Search" method.  My
    office is at latitude 33.417, longitude -111.934.
 
-2. The Google Places API also offers a "details" mode that gives you more 
-   information about one business at a time.  Use this API to load all the
-   *reviews* that Google provides for each bookstore.  Calculate the average
-   review score.
+2. Find the average "rating" of each bookstore in the data and save it.
    
 3. Now use the Google Maps Distance Matrix API to get the driving distance
    from each bookstore to my office.  Now store all this data in a MongoDB
@@ -580,12 +578,14 @@ These are some extensions you can do to develop your skills:
 
 For homework in my class, submit a Python script that queries your database
 and generates the data visualization described in #4.  The style, colors,
-annotations, etc. do not need to be exactly the same.  Also, do not include
+annotations, etc. do not need to be exactly the same.  Also, *do not include*
 the code that queries the Google APIs and loads the database.  (This should
 already be done and not need repeating.  You may keep the code but comment
 it out, if you'd like me to be able to see your work.)
 
-An example of the output will be provided soon.
+An example of the output is provided in figure 3.4.
+
+![Fig. 3.4: Sample Output](/images/tut03_solution.png)
 
 Note that Google estimates driving time based on current conditions and the
 time of day, so your data may not be exactly the same as mine.
