@@ -361,10 +361,118 @@ def fetch_one_profile(id):
     profile = db.flinkedin.find_one({"_id":id})
     return( jsonify(profile) )
     
+
 ## Hosting a web app in the Cloud
 
-TBD
+Right now your data-driven web service is running perfectly (except for the
+two endpoints we've left for your homework, below), and you can use it to 
+store and retrieve data in a database.  This is a **three-tier application**
+with a "front end" (the web browser), "back end" (the database), and an
+"application server" (your Python program) in the middle.  This gives you a
+little security because now people can put data into your database in the
+way you have allowed, but they cannot see your database credentials and
+cannot make unauthorized types of actions in the database.
 
+One problem, though, is that your web service is only accessible on your
+personal computer, at a "localhost" URL.  In order to open it up to other
+users, you'll need to deploy this code onto a server that's open to
+the public Internet.  This is the role of a **web hosting** service like
+GoDaddy or a **cloud app platform** like Heroku.  We'll use the latter, 
+because it's a slightly more powerful tool and easier, too.
+
+![Fig. 5.5: Heroku's homepage](/images/heroku_home.png)
+
+You should be able to create a Heroku account for free, without providing
+any kind of payment information.  Do so now.
+
+The really neat thing about a cloud app platform is that you describe your
+environment in code.  Your app will be accompanied by a few tiny files, one
+which tells Heroku that you're using Python, another which tells Heroku
+which Python packages (like `flask` and `pymongo`) you need, and another
+which tells Heroku what command to use to start the server.  That means
+that one platform allows you (or anyone else who you share your code with)
+to set up the app without doing any "configuration" work, and without deciding
+in advance whether you want to use Python, Java, or any of the other supported
+languages.
+
+### Preparing the code
+
+The three files you need are extremely simple.  First, runtime.txt will tell
+Heroku what version of Python to use.  It's a one-liner.
+
+{title="runtime.txt"}
+~~~~~~~~~~~
+python-3.5.0
+~~~~~~~~~~~
+
+Next, requirements.txt tells Heroku which packages need to be added on top
+of the base Python installation.  It may have several lines.  At press time,
+this works.  You might need to update to a newer version of `pymongo` if 
+there's a new version of MongoDB out when you try this:
+
+{title="requirements.txt"}
+~~~~~~~~~~~
+Flask==0.10.1
+gunicorn==19.3.0
+pymongo==3.2
+~~~~~~~~~~~
+
+Create also a one-liner called "Procfile" (no .txt extension) that tells
+Heroku how to start the web server.  Gunicorn is a production-strength
+web server that should server our purposes fine.
+
+{title="Procfile"}
+~~~~~~~~~~~
+web: gunicorn app:app
+~~~~~~~~~~~
+
+The only change to your Flask app itself is the few lines at the bottom
+of the file.  These check Heroku's environment to find out the port number
+that the server should listen on, instead of the default number 5000.  They
+replace the last two lines of the file we've been  using.
+
+    import os
+    if __name__ == "__main__":
+        # Bind to PORT if defined, otherwise default to 5000.
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port)
+
+These four files: app.py, Procfile, runtime.txt, and requirements.txt, are
+your whole application.  They'll be bundled together and uploaded into a new
+Heroku application.
+
+### Uploading it to Heroku
+
+Here's how you do that. Once you have logged in to the Heroku dashboard, 
+use the menu that looks like
+a "+" to create a new application.  
+
+![Fig. 5.6: Heroku's "create new" menu](/images/heroku_home.png)
+
+On the next screen, click "Create App".  There's no need to give it a name;
+Heroku comes up with some interesting randomly-generated and 
+guaranteed-unique names itself.  You'll find yourself on the "Deploy" tab
+for your new application.  Feel free to explore the options for how to 
+deploy code to Heroku's servers.  Professionally, I'd recommend using Git,
+but for the classroom, Dropbox is a great convenience.
+
+![Fig. 5.7: Heroku/Dropbox integration](/images/heroku_dropbox.png)
+
+If you set up a connection to Dropbox, Heroku creates a new shared folder
+in your Dropbox account under /Apps/Heroku which can be synced up to the
+server.  All you need to do is drop your code in that folder, then hit the
+"Deploy" button to tell Heroku to fetch and install the new version.
+
+Do this now, and watch what happens in the "build" process.  Heroku looks at
+your code, identifies that it's a Python app, loads the dependencies you 
+specified, then starts the server.  You should be able to click "Open" to
+go right to your app at it's new URL.
+
+Now you've officially got your database in the cloud (MongoLab) and your
+Python code running in the cloud (Heroku), so you can close down your computer
+and the app will remain available.  Double-check Heroku's "Resources" tab
+to make sure you're using a free server ("dyno") so you won't be charged for
+usage, and rest easy.
 
 ## Homework
 
