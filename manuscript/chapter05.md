@@ -341,11 +341,11 @@ data manually.
 The basic structure of a GET method handler is to execute a database query
 and return the result as JSON.  That gives us the following:
 
-@app.route("/api/profiles")
-def fetch_profiles():
-    # retrieve all users' names and unique ids
-    all_profiles = list( db.flinkedin.find( {}, {"_id":1,"name":1} ) )
-    return( jsonify({"profiles":all_profiles}) )
+    @app.route("/api/profiles")
+    def fetch_profiles():
+        # retrieve all users' names and unique ids
+        all_profiles = list( db.flinkedin.find( {}, {"_id":1,"name":1} ) )
+        return( jsonify({"profiles":all_profiles}) )
 
 If you inspect the `all_profiles` variable you'll see that it's a list, and
 although JSON may contain lists, the top-level data structure for JSON must
@@ -355,11 +355,11 @@ be a "dict" (actually a JavaScript object).  So when I feed the data to
 The code to fetch just one profile is even simpler, using the MongoDB
 `find_one()` method and matching the `id` part of the URL.
     
-@app.route("/api/profile/<id>")
-def fetch_one_profile(id):
-    # fetch all details of one user's profile and job history
-    profile = db.flinkedin.find_one({"_id":id})
-    return( jsonify(profile) )
+    @app.route("/api/profile/<id>")
+    def fetch_one_profile(id):
+        # fetch all details of one user's profile and job history
+        profile = db.flinkedin.find_one({"_id":id})
+        return( jsonify(profile) )
     
 
 ## Hosting a web app in the Cloud
@@ -456,7 +456,7 @@ for your new application.  Feel free to explore the options for how to
 deploy code to Heroku's servers.  Professionally, I'd recommend using Git,
 but for the classroom, Dropbox is a great convenience.
 
-![Fig. 5.7: Heroku/Dropbox integration](/images/heroku_dropbox.png)
+![Fig. 5.7: Heroku/Dropbox integration](/images/heroku_create.png)
 
 If you set up a connection to Dropbox, Heroku creates a new shared folder
 in your Dropbox account under /Apps/Heroku which can be synced up to the
