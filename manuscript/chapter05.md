@@ -447,7 +447,7 @@ Here's how you do that. Once you have logged in to the Heroku dashboard,
 use the menu that looks like
 a "+" to create a new application.  
 
-![Fig. 5.6: Heroku's "create new" menu](/images/heroku_home.png)
+![Fig. 5.6: Heroku's "create new" menu](/images/heroku_createapp.png)
 
 On the next screen, click "Create App".  There's no need to give it a name;
 Heroku comes up with some interesting randomly-generated and 
@@ -456,7 +456,7 @@ for your new application.  Feel free to explore the options for how to
 deploy code to Heroku's servers.  Professionally, I'd recommend using Git,
 but for the classroom, Dropbox is a great convenience.
 
-![Fig. 5.7: Heroku/Dropbox integration](/images/heroku_create.png)
+![Fig. 5.7: Heroku/Dropbox integration](/images/heroku_dropbox.png)
 
 If you set up a connection to Dropbox, Heroku creates a new shared folder
 in your Dropbox account under /Apps/Heroku which can be synced up to the
