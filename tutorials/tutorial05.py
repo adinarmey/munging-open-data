@@ -5,8 +5,17 @@ Created on Thu Feb 11 05:34:02 2016
 @author: jwclark2
 """
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, abort
 app = Flask(__name__)
+
+
+# database connection
+from pymongo import MongoClient
+MONGO_URL = "mongodb://USERNAME:PASSWORD@SERVER.mongolab.com:PORT/DATABASE"
+client = MongoClient(MONGO_URL)
+db = client.get_default_database()
+
+
 
 # tutorial routes
 
@@ -28,44 +37,44 @@ def home(username):
 @app.route("/api/profiles")
 def fetch_profiles():
     # retrieve all users' names and unique ids
-    fake_data = {"profiles": [ 
-                    {"name":"John McLane", "id":"jmclane"},
-                    {"name":"James Edwards", "id":"j"},
-                    {"name":"Samwise Gamgee", "id":"samg"}
-                             ] }
-    return( jsonify(fake_data) )
+    all_profiles = list( db.flinkedin.find( {}, {"_id":1,"name":1} ) )
+    return( jsonify({"profiles":all_profiles}) )
 
 @app.route("/api/profiles", methods=["POST"])
 def new_profile():
-    # send a message indicating successful post
-    fake_data = {"status":"OK","id":"newuser77"}
-    return( jsonify(fake_data) )
+    # error checking: JSON required; "_id", "name" required
+    if not request.json:
+        abort(400) # error 400: bad request
+    if not "_id" in request.json.keys():
+        abort(400)
+    if not "name" in request.json.keys():
+        abort(400)
+    # insert into database
+    db.flinkedin.insert_one(request.json)
+    return( jsonify({"status":"OK","id":request.json["_id"]}) )
 
 @app.route("/api/profile/<id>")
 def fetch_one_profile(id):
-    # send all details of one user's profile and job history
-    fake_data = {"name": "John McLane",
-                 "id": "jmclane",
-                 "jobs": [ {"employer":"NYPD",
-                            "position":"Lieutenant",
-                            "start":"1988"} ]
-                }
-    return( jsonify(fake_data) )
+    # fetch all details of one user's profile and job history
+    profile = db.flinkedin.find_one({"_id":id})
+    return( jsonify(profile) )
 
 @app.route("/api/profile/<id>/jobs", methods=["POST"])
-def new_job():
-    # send a message indicating successful post
-    fake_data = {"status":"OK","id":"existinguser77"}
-    return( jsonify(fake_data) )
+def new_job(id):
+    # error checking. input requires "employer", "position", "start"
+    if not request.json:
+        abort(400) # error 400: bad request
+    if not "employer" in request.json.keys():
+        abort(400)
+    # add job to list for existing profile
+    db.flinkedin.update({"_id":id},
+                        {"$push": {"jobs": request.json} })
+    return( jsonify({"status":"OK","id":id}) )
 
 @app.route("/api/companies")
 def fetch_companies():
     # retrieve all unique company names in the database
-    fake_data = {"companies": [ 
-                    {"name":"NYPD"},
-                    {"name":"MIB"},
-                    {"name":"Bag End"}
-                             ] }
+    fake_data = {"companies": [ "NYPD", "MIB", "Bag End" ] }
     return( jsonify(fake_data) )
 
 @app.route("/api/company/<name>")
